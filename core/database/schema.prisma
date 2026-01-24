@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters", "multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["clients"]
+}
+
+enum VideoStatus {
+  none
+  demo_started
+  demo_finished
+  final_progress
+  final
+
+  @@schema("clients")
+}
+
+model Company {
+  id               String            @id @default(uuid())
+  name             String
+  websiteUrl       String            @map("website_url")
+  employees        Int
+  industry         String
+  campaignId      String            @map("campaign_id")
+  primaryColor     String            @map("primary_color")
+  secondaryColor   String            @map("secondary_color")
+  fontFamily       String            @map("font_family")
+  logoUrl          String            @map("logo_url")
+  valueProp        String            @map("value_prop")
+  features         Json              @db.JsonB
+  targetAudience   String            @map("target_audience")
+  voiceTone        String            @map("voice_tone")
+  videoStatus      VideoStatus       @default(none) @map("video_status")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  employeeContacts EmployeeContact[]
+  demoVideos       DemoVideo[]
+  finalVideos      FinalVideo[]
+
+  @@map("companies")
+  @@schema("clients")
+}
+
+model DemoVideo {
+  id        String   @id @default(uuid())
+  companyId String   @map("company_id")
+  videoLink String   @map("video_link")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("demo_videos")
+  @@schema("clients")
+}
+
+model FinalVideo {
+  id        String   @id @default(uuid())
+  companyId String   @map("company_id")
+  videoLink String   @map("video_link")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("final_videos")
+  @@schema("clients")
+}
+
+model EmployeeContact {
+  id         String   @id @default(uuid())
+  companyId  String   @map("company_id")
+  firstName  String   @map("first_name")
+  lastName   String   @map("last_name")
+  jobTitle   String   @map("job_title")
+  email      String
+  avatarUrl  String   @map("avatar_url")
+  linkedinUrl String  @map("linkedin_url")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("employees")
+  @@schema("clients")
+}
