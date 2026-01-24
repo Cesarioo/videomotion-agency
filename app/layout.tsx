@@ -11,6 +11,29 @@ export const metadata: Metadata = {
   title: 'Chocomotion | Premium Motion Design Agency',
   description: 'Where motion meets flavor. We craft delicious animations and motion graphics that bring your brand to life.',
   generator: 'v0.app',
+  metadataBase: new URL('https://chocomotion.agency'),
+  openGraph: {
+    title: 'Chocomotion | Premium Motion Design Agency',
+    description: 'Where motion meets flavor. We craft delicious animations and motion graphics that bring your brand to life.',
+    url: 'https://chocomotion.agency',
+    siteName: 'Chocomotion',
+    images: [
+      {
+        url: 'https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/logo.png',
+        width: 1200,
+        height: 630,
+        alt: 'Chocomotion - Premium Motion Design Studio',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Chocomotion | Premium Motion Design Agency',
+    description: 'Where motion meets flavor. We craft delicious animations and motion graphics that bring your brand to life.',
+    images: ['https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/logo.png'],
+  },
   icons: {
     icon: [
       {
