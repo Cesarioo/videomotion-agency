@@ -35,7 +35,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <a href="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
           <img
-            src="https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/logo.png"
+            src="https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/android-chrome-192x192.png"
             alt="Chocomotion"
             className="h-8 w-8"
           />

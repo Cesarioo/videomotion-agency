@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     siteName: 'Chocomotion',
     images: [
       {
-        url: 'https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/logo.png',
+        url: 'https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/android-chrome-192x192.png',
         width: 1200,
         height: 630,
         alt: 'Chocomotion - Premium Motion Design Studio',
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Chocomotion | Premium Motion Design Agency',
     description: 'Where motion meets flavor. We craft delicious animations and motion graphics that bring your brand to life.',
-    images: ['https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/logo.png'],
+    images: ['https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/android-chrome-192x192.png'],
   },
   icons: {
     icon: [

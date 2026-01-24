@@ -6,7 +6,7 @@ export function Footer() {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-4">
               <img
-                src="https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/logo.png"
+                src="https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/android-chrome-192x192.png"
                 alt="Chocomotion"
                 className="h-8 w-8"
                 loading="eager"

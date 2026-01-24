@@ -2,9 +2,43 @@
 
 import { useEffect, useState } from "react"
 
+// All images that need to be preloaded before showing the page
+const imagesToPreload = [
+  // Logo
+  "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/android-chrome-192x192.png",
+  // Client logos
+  "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/@mail.png",
+  "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/clickup.png",
+  "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/altana.png",
+  "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/hubspot.png",
+  "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/prosperian.png",
+  "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/notion.png",
+  "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/slack.png",
+  // Work section logos
+  "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/slack.png",
+  "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/notion.png",
+  "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/clickup.png",
+  "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/prosperian.png"
+]
+
+function preloadImages(urls: string[]): Promise<void> {
+  return Promise.all(
+    urls.map(
+      (url) =>
+        new Promise<void>((resolve, reject) => {
+          const img = new Image()
+          img.onload = () => resolve()
+          img.onerror = () => resolve() // Continue even if some images fail
+          img.src = url
+        })
+    )
+  ).then(() => {})
+}
+
 export function LoadingScreen() {
   const [isLoading, setIsLoading] = useState(true)
   const [isVisible, setIsVisible] = useState(true)
+  const [imagesLoaded, setImagesLoaded] = useState(false)
   const [logoScaled, setLogoScaled] = useState(false)
   const [popComplete, setPopComplete] = useState(false)
   const [displayedText, setDisplayedText] = useState("")
@@ -12,6 +46,15 @@ export function LoadingScreen() {
   const fullText = "chocomotion"
 
   useEffect(() => {
+    // Preload all images before starting animation
+    preloadImages(imagesToPreload).then(() => {
+      setImagesLoaded(true)
+    })
+  }, [])
+
+  useEffect(() => {
+    if (!imagesLoaded) return
+
     // Logo appears at -30deg, then pops forward and rotates to 0deg
     const logoScaleTimer = setTimeout(() => {
       setLogoScaled(true) // Start pop-rotate animation
@@ -20,7 +63,7 @@ export function LoadingScreen() {
     return () => {
       clearTimeout(logoScaleTimer)
     }
-  }, [])
+  }, [imagesLoaded])
 
   useEffect(() => {
     if (!logoScaled) return
@@ -96,7 +139,7 @@ export function LoadingScreen() {
       <div className="flex items-center gap-4 relative z-10">
         <div className="relative">
           <img
-            src="https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/logo.png"
+            src="https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/android-chrome-192x192.png"
             alt="Chocomotion"
             className={`h-24 w-24 ${
               splitExit
