@@ -6,10 +6,12 @@ import { ServicesSection } from "@/components/services-section"
 import { AboutSection } from "@/components/about-section"
 import { ContactSection } from "@/components/contact-section"
 import { Footer } from "@/components/footer"
+import { LoadingScreen } from "@/components/loading-screen"
 
 export default function Home() {
   return (
     <main className="min-h-screen">
+      <LoadingScreen />
       <Navbar />
       <HeroSection />
       <ClientsSection />

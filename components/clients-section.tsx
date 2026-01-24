@@ -1,11 +1,11 @@
 const clients = [
-  { name: "@mail", logo: "/clients/@mail.png" },
-  { name: "ClickUp", logo: "/clients/clickup.png" },
-  { name: "Altana", logo: "/clients/altana.png" },
-  { name: "HubSpot", logo: "/clients/hubspot.png" },
-  { name: "Prosperian", logo: "/clients/prosperian.png" },
-  { name: "Notion", logo: "/clients/notion.png" },
-  { name: "Slack", logo: "/clients/slack.png" },
+  { name: "@mail", logo: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/@mail.png" },
+  { name: "ClickUp", logo: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/clickup.png" },
+  { name: "Altana", logo: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/altana.png" },
+  { name: "HubSpot", logo: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/hubspot.png" },
+  { name: "Prosperian", logo: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/prosperian.png" },
+  { name: "Notion", logo: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/notion.png" },
+  { name: "Slack", logo: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/clients/slack.png" },
 ]
 
 export function ClientsSection() {

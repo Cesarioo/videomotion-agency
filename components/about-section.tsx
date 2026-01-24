@@ -1,12 +1,12 @@
 const galleryImages = [
-  { src: "/about/working.png", alt: "Our team working" },
-  { src: "/about/talkin.png", alt: "Team discussion" },
-  { src: "/about/fun.png", alt: "Having fun" },
-  { src: "/about/woman.png", alt: "Team member" },
-  { src: "/about/workplace.png", alt: "Our workspace" },
-  { src: "/about/working2.png", alt: "Creative process" },
-  { src: "/about/working3.png", alt: "Team collaboration" },
-  { src: "/about/working4.png", alt: "Team at work" },
+  { src: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/about/working.png", alt: "Our team working" },
+  { src: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/about/talkin.png", alt: "Team discussion" },
+  { src: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/about/fun.png", alt: "Having fun" },
+  { src: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/about/woman.png", alt: "Team member" },
+  { src: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/about/workplace.png", alt: "Our workspace" },
+  { src: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/about/working2.png", alt: "Creative process" },
+  { src: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/about/working3.png", alt: "Team collaboration" },
+  { src: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/about/working4.png", alt: "Team at work" },
 ]
 
 export function AboutSection() {

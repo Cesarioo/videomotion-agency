@@ -2,7 +2,6 @@ import React from "react"
 import type { Metadata } from 'next'
 import { DM_Serif_Display, Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
-import { LoadingScreen } from '@/components/loading-screen'
 import './globals.css'
 
 const _dmSerif = DM_Serif_Display({ subsets: ["latin"], weight: "400" });
@@ -63,7 +62,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`font-sans antialiased`}>
-        <LoadingScreen />
         {children}
         <Analytics />
       </body>

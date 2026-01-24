@@ -96,7 +96,7 @@ export function LoadingScreen() {
       <div className="flex items-center gap-4 relative z-10">
         <div className="relative">
           <img
-            src="/logo.png"
+            src="https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/logo.png"
             alt="Chocomotion"
             className={`h-24 w-24 ${
               splitExit

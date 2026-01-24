@@ -6,7 +6,7 @@ const services = [
     target: "Product Launches & Social Media",
     description:
       "Launch your new product with maximum impact. Optimized for social media, these eye-catching videos are designed to stop the scroll and spark engagement. Multi-format delivery for Instagram, TikTok, LinkedIn, and beyond.",
-    image: "/services/strawberry.png",
+    image: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/services/strawberry.png",
   },
   {
     id: 2,
@@ -15,7 +15,7 @@ const services = [
     target: "Landing Pages & Service Presentations",
     description:
       "Present your entire service or brand in one captivating video. Perfect for landing pages, website headers, and company overviews. Turn complex offerings into smooth, digestible content that converts visitors into customers.",
-    image: "/services/vanilla.png",
+    image: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/services/vanilla.png",
   },
   {
     id: 3,
@@ -24,7 +24,7 @@ const services = [
     target: "Internal Comms & Snackable Content",
     description:
       "Perfect bite-sized content for specific company needs. Whether it's HR onboarding, fundraising decks, investor updates, or team announcements—premium snack content that's easy to share and impossible to ignore.",
-    image: "/services/caramel.png",
+    image: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/services/caramel.png",
   },
 ]
 
@@ -55,7 +55,7 @@ export function ServicesSection() {
             >
               <div className="relative w-full h-[400px] mb-6">
                 <img
-                  src={service.image || "/placeholder.svg"}
+                  src={service.image || "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/placeholder.svg"}
                   alt={service.title}
                   className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                 />
