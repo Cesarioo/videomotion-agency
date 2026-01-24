@@ -33,32 +33,32 @@ export function AboutSection() {
           </p>
         </div>
 
-        {/* Image Gallery - 2 rows with varying sizes */}
+        {/* Image Gallery - Responsive multi-row layout */}
         <div className="space-y-4">
           {/* Row 1 */}
-          <div className="flex gap-4 overflow-hidden">
-            <div className="flex-shrink-0 w-[400px] h-64 relative rounded-xl overflow-hidden bg-secondary">
+          <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-2 sm:pb-0">
+            <div className="shrink-0 w-[48%] sm:w-[40%] md:w-[400px] h-48 sm:h-56 md:h-64 relative rounded-xl overflow-hidden bg-secondary">
               <img
                 src={galleryImages[0].src}
                 alt={galleryImages[0].alt}
                 className="w-full h-full object-cover scale-130"
               />
             </div>
-            <div className="flex-shrink-0 w-[250px] h-64 relative rounded-xl overflow-hidden bg-secondary">
+            <div className="shrink-0 w-[48%] sm:w-[25%] md:w-[250px] h-48 sm:h-56 md:h-64 relative rounded-xl overflow-hidden bg-secondary">
               <img
                 src={galleryImages[1].src}
                 alt={galleryImages[1].alt}
                 className="w-full h-full object-cover scale-130"
               />
             </div>
-            <div className="flex-shrink-0 w-[320px] h-64 relative rounded-xl overflow-hidden bg-secondary">
+            <div className="shrink-0 w-[48%] sm:w-[32%] md:w-[320px] h-48 sm:h-56 md:h-64 relative rounded-xl overflow-hidden bg-secondary">
               <img
                 src={galleryImages[2].src}
                 alt={galleryImages[2].alt}
                 className="w-full h-full object-cover scale-130"
               />
             </div>
-            <div className="flex-shrink-0 w-[200px] h-64 relative rounded-xl overflow-hidden bg-secondary">
+            <div className="shrink-0 w-[48%] sm:w-[20%] md:w-[200px] h-48 sm:h-56 md:h-64 relative rounded-xl overflow-hidden bg-secondary">
               <img
                 src={galleryImages[3].src}
                 alt={galleryImages[3].alt}
@@ -68,29 +68,29 @@ export function AboutSection() {
           </div>
 
           {/* Row 2 */}
-          <div className="flex gap-4 overflow-hidden">
-            <div className="flex-shrink-0 w-[280px] h-64 relative rounded-xl overflow-hidden bg-secondary">
+          <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-2 sm:pb-0">
+            <div className="shrink-0 w-[48%] sm:w-[28%] md:w-[280px] h-48 sm:h-56 md:h-64 relative rounded-xl overflow-hidden bg-secondary">
               <img
                 src={galleryImages[4].src}
                 alt={galleryImages[4].alt}
                 className="w-full h-full object-cover scale-130"
               />
             </div>
-            <div className="flex-shrink-0 w-[380px] h-64 relative rounded-xl overflow-hidden bg-secondary">
+            <div className="shrink-0 w-[48%] sm:w-[38%] md:w-[380px] h-48 sm:h-56 md:h-64 relative rounded-xl overflow-hidden bg-secondary">
               <img
                 src={galleryImages[5].src}
                 alt={galleryImages[5].alt}
                 className="w-full h-full object-cover scale-130"
               />
             </div>
-            <div className="flex-shrink-0 w-[220px] h-64 relative rounded-xl overflow-hidden bg-secondary">
+            <div className="shrink-0 w-[48%] sm:w-[22%] md:w-[220px] h-48 sm:h-56 md:h-64 relative rounded-xl overflow-hidden bg-secondary">
               <img
                 src={galleryImages[6].src}
                 alt={galleryImages[6].alt}
                 className="w-full h-full object-cover scale-130"
               />
             </div>
-            <div className="flex-shrink-0 w-[350px] h-64 relative rounded-xl overflow-hidden bg-secondary">
+            <div className="shrink-0 w-[48%] sm:w-[35%] md:w-[350px] h-48 sm:h-56 md:h-64 relative rounded-xl overflow-hidden bg-secondary">
               <img
                 src={galleryImages[7].src}
                 alt={galleryImages[7].alt}
