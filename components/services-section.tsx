@@ -1,29 +1,30 @@
-import Image from "next/image"
-
 const services = [
   {
     id: 1,
-    title: "Saveur Vanille",
-    price: "A partir de 2 500 EUR",
+    title: "Raspberry Flavor",
+    price: "2,000$",
+    target: "Product Launches & Social Media",
     description:
-      "Notre formule essentielle. Parfaite pour les startups et petites entreprises qui souhaitent une animation de marque elegante et memorable. Inclut concept, storyboard et livraison HD.",
-    image: "/services/vanilla.jpg",
+      "Launch your new product with maximum impact. Optimized for social media, these eye-catching videos are designed to stop the scroll and spark engagement. Multi-format delivery for Instagram, TikTok, LinkedIn, and beyond.",
+    image: "/services/strawberry.png",
   },
   {
     id: 2,
-    title: "Saveur Fraise",
-    price: "A partir de 5 000 EUR",
+    title: "Vanilla Flavor",
+    price: "3,000$",
+    target: "Landing Pages & Service Presentations",
     description:
-      "Notre offre la plus populaire. Ideal pour les campagnes marketing et lancements de produits. Inclut motion graphics avances, musique originale et declinaisons multi-formats.",
-    image: "/services/strawberry.jpg",
+      "Present your entire service or brand in one captivating video. Perfect for landing pages, website headers, and company overviews. Turn complex offerings into smooth, digestible content that converts visitors into customers.",
+    image: "/services/vanilla.png",
   },
   {
     id: 3,
-    title: "Saveur Amande",
-    price: "A partir de 12 000 EUR",
+    title: "Caramel Flavor",
+    price: "4,000$",
+    target: "Internal Comms & Snackable Content",
     description:
-      "L'experience premium complete. Pour les marques exigeantes qui veulent des creations exceptionnelles. Inclut animation 3D, direction artistique complete et accompagnement strategique.",
-    image: "/services/almond.jpg",
+      "Perfect bite-sized content for specific company needs. Whether it's HR onboarding, fundraising decks, investor updates, or team announcements—premium snack content that's easy to share and impossible to ignore.",
+    image: "/services/caramel.png",
   },
 ]
 
@@ -33,16 +34,16 @@ export function ServicesSection() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="max-w-2xl mb-16">
           <span className="text-sm text-accent uppercase tracking-widest mb-4 block">
-            Nos Services
+            Our Services
           </span>
           <h2 className="font-serif text-4xl md:text-5xl text-foreground mb-6 text-balance">
-            Chaque saveur du motion,
+            Every flavor of motion,
             <br />
-            preparee avec expertise
+            crafted to perfection
           </h2>
           <p className="text-muted-foreground">
-            Du concept a la livraison finale, nous traitons chaque projet avec le meme soin 
-            qu'un maitre chocolatier apporte a ses plus belles creations.
+            From concept to final delivery, we treat every project with the precision 
+            of a master chocolatier—because exceptional results demand exceptional care.
           </p>
         </div>
 
@@ -50,20 +51,22 @@ export function ServicesSection() {
           {services.map((service) => (
             <div
               key={service.id}
-              className="group bg-card rounded-2xl overflow-hidden border border-border hover:border-accent transition-colors"
+              className="group flex flex-col"
             >
-              <div className="aspect-[4/3] relative overflow-hidden">
-                <Image
+              <div className="relative w-full h-[400px] mb-6">
+                <img
                   src={service.image || "/placeholder.svg"}
                   alt={service.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
-              <div className="p-6">
-                <h3 className="font-serif text-2xl text-foreground mb-2">
+              <div>
+                <h3 className="font-serif text-2xl text-foreground mb-1">
                   {service.title}
                 </h3>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                  {service.target}
+                </p>
                 <p className="text-accent font-medium mb-4">{service.price}</p>
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   {service.description}

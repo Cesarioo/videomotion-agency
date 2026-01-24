@@ -1,8 +1,5 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Play } from "lucide-react"
-
 export function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
@@ -12,41 +9,30 @@ export function HeroSection() {
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-6 py-20 text-center">
-        <div className="inline-flex items-center gap-2 bg-secondary px-4 py-2 rounded-full mb-8">
-          <span className="w-2 h-2 bg-accent rounded-full animate-pulse" />
-          <span className="text-sm text-muted-foreground">Nouveaux projets disponibles pour T1 2026</span>
-        </div>
-
-        <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl text-foreground leading-tight mb-6 text-balance">
-          Le motion design
+      <div className="relative max-w-7xl mx-auto px-6 py-10 text-center">
+        <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl text-foreground leading-tight mb-8 text-balance">
+          Motion design that
           <br />
-          <span className="text-accent">fondant et savoureux</span>
+          <span className="text-accent">moves markets</span>
         </h1>
 
+        <div className="max-w-4xl mx-auto mb-8 rounded-2xl overflow-hidden shadow-2xl">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-auto"
+          >
+            <source src="https://cdn.pixabay.com/video/2016/08/18/4572-179384394_large.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+
         <p className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground mb-10 text-pretty">
-          Nous creons des animations fluides et gourmandes qui captivent votre audience 
-          et donnent vie a votre marque avec une saveur irresistible.
+          We craft irresistibly smooth animations that captivate audiences, 
+          elevate brands, and deliver results that taste like success.
         </p>
-
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button size="lg" className="gap-2 text-base">
-            Voir nos projets
-            <ArrowRight size={18} />
-          </Button>
-          <Button variant="outline" size="lg" className="gap-2 text-base bg-transparent">
-            <Play size={18} />
-            Regarder la bande-annonce
-          </Button>
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-          <span className="text-xs text-muted-foreground uppercase tracking-widest">Defiler</span>
-          <div className="w-px h-12 bg-border relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-4 bg-accent animate-bounce" />
-          </div>
-        </div>
       </div>
     </section>
   )

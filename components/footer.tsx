@@ -1,13 +1,13 @@
 const footerLinks = {
   services: [
-    { label: "Saveur Vanille", href: "#services" },
-    { label: "Saveur Fraise", href: "#services" },
-    { label: "Saveur Amande", href: "#services" },
+    { label: "Vanilla Flavor", href: "#services" },
+    { label: "Rasberry Flavor", href: "#services" },
+    { label: "Caramel Flavor", href: "#services" },
   ],
   company: [
-    { label: "Notre histoire", href: "#about" },
-    { label: "Projets", href: "#work" },
-    { label: "Carrieres", href: "#" },
+    { label: "Our Story", href: "#about" },
+    { label: "Work", href: "#work" },
+    { label: "Careers", href: "#" },
     { label: "Contact", href: "#contact" },
   ],
   social: [
@@ -24,17 +24,25 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           <div className="lg:col-span-1">
-            <a href="/" className="font-serif text-2xl text-background tracking-tight inline-block mb-4">
-              choco<span className="text-accent">motion</span>
+            <a href="/" className="flex items-center gap-2 mb-4">
+              <img
+                src="/logo.png"
+                alt="Chocomotion"
+                className="h-8 w-8"
+                style={{ filter: 'brightness(0) invert(1)' }}
+              />
+              <span className="font-serif text-2xl text-background tracking-tight">
+                choco<span className="text-accent">motion</span>
+              </span>
             </a>
             <p className="text-background/60 text-sm">
-              Studio de motion design premium qui cree des animations fluides et 
-              gourmandes donnant vie aux marques.
+              Premium motion design studio crafting irresistibly smooth animations 
+              that bring brands to life.
             </p>
           </div>
 
           <div>
-            <h4 className="font-medium text-background mb-4">Nos Saveurs</h4>
+            <h4 className="font-medium text-background mb-4">Our Flavors</h4>
             <ul className="space-y-3">
               {footerLinks.services.map((link) => (
                 <li key={link.label}>
@@ -50,7 +58,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-medium text-background mb-4">Entreprise</h4>
+            <h4 className="font-medium text-background mb-4">Company</h4>
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.label}>
@@ -66,7 +74,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-medium text-background mb-4">Suivez-nous</h4>
+            <h4 className="font-medium text-background mb-4">Follow Us</h4>
             <ul className="space-y-3">
               {footerLinks.social.map((link) => (
                 <li key={link.label}>
@@ -84,14 +92,14 @@ export function Footer() {
 
         <div className="pt-8 border-t border-background/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-background/40">
-            © 2026 Chocomotion Studio. Tous droits reserves.
+            © 2026 Chocomotion Studio. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-sm text-background/40 hover:text-background transition-colors">
-              Politique de confidentialite
+              Privacy Policy
             </a>
             <a href="#" className="text-sm text-background/40 hover:text-background transition-colors">
-              Conditions d'utilisation
+              Terms of Service
             </a>
           </div>
         </div>

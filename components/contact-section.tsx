@@ -31,26 +31,26 @@ export function ContactSection() {
               Contact
             </span>
             <h2 className="font-serif text-4xl md:text-5xl mb-6">
-              Pret a creer quelque
+              Ready to create something
               <br />
-              chose de delicieux ?
+              absolutely irresistible?
             </h2>
             <p className="text-primary-foreground/80 mb-8 max-w-md">
-              Que vous ayez un projet en tete ou que vous souhaitiez simplement explorer 
-              les possibilites, nous serions ravis d'echanger avec vous. Lancons la conversation.
+              Whether you have a project in mind or just want to explore possibilities, 
+              we'd love to chat. Let's start the conversation that transforms your vision into motion.
             </p>
 
             <div className="space-y-4">
               <div>
                 <span className="text-sm text-primary-foreground/60 uppercase tracking-widest">Email</span>
-                <p className="text-lg">bonjour@chocomotion.studio</p>
+                <p className="text-lg">hello@chocomotion.studio</p>
               </div>
               <div>
-                <span className="text-sm text-primary-foreground/60 uppercase tracking-widest">Telephone</span>
+                <span className="text-sm text-primary-foreground/60 uppercase tracking-widest">Phone</span>
                 <p className="text-lg">+33 1 42 68 53 00</p>
               </div>
               <div>
-                <span className="text-sm text-primary-foreground/60 uppercase tracking-widest">Adresse</span>
+                <span className="text-sm text-primary-foreground/60 uppercase tracking-widest">Address</span>
                 <p className="text-lg">Paris, France</p>
               </div>
             </div>
@@ -61,13 +61,13 @@ export function ContactSection() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="name" className="text-sm text-primary-foreground/80 mb-2 block">
-                    Nom
+                    Name
                   </label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Votre nom"
+                    placeholder="Your name"
                     className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50"
                   />
                 </div>
@@ -80,7 +80,7 @@ export function ContactSection() {
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="votre@email.com"
+                    placeholder="your@email.com"
                     className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50"
                   />
                 </div>
@@ -88,13 +88,13 @@ export function ContactSection() {
 
               <div>
                 <label htmlFor="company" className="text-sm text-primary-foreground/80 mb-2 block">
-                  Entreprise (optionnel)
+                  Company (optional)
                 </label>
                 <Input
                   id="company"
                   value={formData.company}
                   onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                  placeholder="Votre entreprise"
+                  placeholder="Your company"
                   className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50"
                 />
               </div>
@@ -107,7 +107,7 @@ export function ContactSection() {
                   id="message"
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  placeholder="Parlez-nous de votre projet..."
+                  placeholder="Tell us about your project..."
                   rows={5}
                   className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 resize-none"
                 />
@@ -118,7 +118,7 @@ export function ContactSection() {
                 size="lg" 
                 className="w-full sm:w-auto bg-primary-foreground text-primary hover:bg-primary-foreground/90 gap-2"
               >
-                Envoyer le message
+                Send Message
                 <ArrowRight size={18} />
               </Button>
             </form>

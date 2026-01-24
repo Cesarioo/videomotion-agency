@@ -1,30 +1,39 @@
 const clients = [
-  "Godiva",
-  "Lindt",
-  "Ghirardelli",
-  "Ferrero",
-  "Toblerone",
-  "Cadbury",
-  "Hershey's",
+  { name: "@mail", logo: "/clients/@mail.png" },
+  { name: "ClickUp", logo: "/clients/clickup.png" },
+  { name: "Altana", logo: "/clients/altana.png" },
+  { name: "HubSpot", logo: "/clients/hubspot.png" },
+  { name: "Prosperian", logo: "/clients/prosperian.png" },
+  { name: "Notion", logo: "/clients/notion.png" },
+  { name: "Slack", logo: "/clients/slack.png" },
 ]
 
 export function ClientsSection() {
+  // Duplicate clients array multiple times for seamless loop
+  const duplicatedClients = [...clients, ...clients, ...clients]
+
   return (
-    <section className="py-16 border-y border-border bg-secondary/50">
+    <section className="py-16 border-y border-border bg-secondary/50 overflow-hidden">
       <div className="max-w-7xl mx-auto px-6">
         <p className="text-center text-sm text-muted-foreground mb-8">
-          Les plus grandes marques nous font confiance pour creer la magie du mouvement
+          Trusted by the world's most iconic brands to create motion that moves markets
         </p>
         
-        <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
-          {clients.map((client) => (
-            <span
-              key={client}
-              className="text-lg md:text-xl font-medium text-muted-foreground/60 hover:text-foreground transition-colors cursor-default"
-            >
-              {client}
-            </span>
-          ))}
+        <div className="relative w-full overflow-hidden">
+          <div className="flex items-center gap-8 md:gap-16 animate-scroll">
+            {duplicatedClients.map((client, index) => (
+              <div
+                key={`${client.name}-${index}`}
+                className="flex-shrink-0 flex items-center justify-center h-12 md:h-16 opacity-60 hover:opacity-100 transition-opacity duration-300"
+              >
+                <img
+                  src={client.logo}
+                  alt={client.name}
+                  className="h-full w-auto max-w-[120px] md:max-w-[150px] object-contain"
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
