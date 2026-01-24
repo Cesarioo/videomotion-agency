@@ -6,7 +6,7 @@ const services = [
     target: "Product Launches & Social Media",
     description:
       "Launch your new product with maximum impact. Optimized for social media, these eye-catching videos are designed to stop the scroll and spark engagement. Multi-format delivery for Instagram, TikTok, LinkedIn, and beyond.",
-    image: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/services/strawberry.png",
+    image: "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/services/raspberry.png",
   },
   {
     id: 2,
