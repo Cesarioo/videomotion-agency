@@ -4,6 +4,7 @@ import swaggerUI from "@fastify/swagger-ui";
 import { config } from "dotenv";
 import companiesRoutes from "./routes/companies.js";
 import videoRoutes from "./routes/video.js";
+import parserRoutes from "./routes/parser.js";
 import { verifyApiKey } from "./hooks/auth.js";
 
 // Load environment variables
@@ -38,6 +39,7 @@ app.addHook("onRequest", verifyApiKey);
 // Register routes AFTER Swagger so they're scanned and included in docs
 await app.register(companiesRoutes, { prefix: "/api" });
 await app.register(videoRoutes, { prefix: "/api" });
+await app.register(parserRoutes, { prefix: "/api" });
 
 await app.register(swaggerUI, {
   routePrefix: "/docs",
