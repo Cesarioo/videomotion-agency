@@ -1,0 +1,62 @@
+name: Deploy API
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy files via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "."
+          target: "/opt/chocomotion-api"
+          rm: true
+
+      - name: Execute remote ssh commands
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /opt/chocomotion-api
+            
+            # Create .env file from secrets (optional but recommended)
+            echo "DB_HOST=${{ secrets.DB_HOST }}" > .env
+            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+            echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+            echo "API_KEY=${{ secrets.API_KEY }}" >> .env
+            echo "R2_ACCOUNT_ID=${{ secrets.R2_ACCOUNT_ID }}" >> .env
+            echo "R2_ACCESS_KEY_ID=${{ secrets.R2_ACCESS_KEY_ID }}" >> .env
+            echo "R2_SECRET_ACCESS_KEY=${{ secrets.R2_SECRET_ACCESS_KEY }}" >> .env
+            echo "R2_BUCKET_NAME=${{ secrets.R2_BUCKET_NAME }}" >> .env
+            echo "R2_PUBLIC_URL=${{ secrets.R2_PUBLIC_URL }}" >> .env
+
+            # Build and Run Docker Container
+            docker build -t chocomotion-api .
+            
+            # Stop and remove existing container if it exists
+            docker stop chocomotion-api || true
+            docker rm chocomotion-api || true
+            
+            # Run new container
+            # --network="host" might be needed if DB is on localhost of the VM
+            docker run -d \
+              --name chocomotion-api \
+              --restart unless-stopped \
+              -p 3000:3000 \
+              --env-file .env \
+              chocomotion-api
+
