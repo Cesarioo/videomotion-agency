@@ -18,11 +18,9 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+COPY package.json ./
 
-# Install dependencies
-RUN npm ci
+RUN npm install
 
 # Copy Prisma schema and generate client
 COPY prisma.config.ts ./
