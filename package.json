@@ -19,6 +19,7 @@
     "@types/node": "^25.0.10",
     "@types/pg": "^8.16.0",
     "dotenv": "^17.2.3",
+    "tsc-alias": "^1.8.16",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
@@ -31,7 +32,7 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:push": "prisma db push",
-    "build": "tsc",
+    "build": "tsc && tsc-alias",
     "start": "node dist/api/server.js"
   },
   "type": "module",
