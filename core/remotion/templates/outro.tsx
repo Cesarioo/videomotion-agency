@@ -1,0 +1,69 @@
+import React from 'react';
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
+
+const BG = '#0f172a';
+const ACCENT = '#fbbf24';
+const LOGO_URL = 'https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/logo.png';
+
+export const OutroScene: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const logoIn = spring({ frame: frame - 4, fps, config: { damping: 12, stiffness: 140 } });
+  const logoScale = interpolate(logoIn, [0, 1], [0.7, 1]);
+  const logoY = interpolate(logoIn, [0, 1], [260, 0]);
+  const logoRotate = interpolate(logoIn, [0, 1], [180, 0]);
+
+  const textIn = spring({ frame: frame - 26, fps, config: { damping: 14, stiffness: 120 } });
+  const textOpacity = interpolate(textIn, [0, 1], [0, 1]);
+  const textY = interpolate(textIn, [0, 1], [24, 0]);
+
+  return (
+    <AbsoluteFill
+      style={{
+        backgroundColor: BG,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28 }}>
+        <div
+          style={{
+            transform: `translateY(${logoY}px) rotate(${logoRotate}deg) scale(${logoScale})`,
+          }}
+        >
+          <img
+            src={LOGO_URL}
+            alt="Chocomotion logo"
+            style={{ width: 240, height: 240, objectFit: 'contain' }}
+          />
+        </div>
+
+        <div style={{ textAlign: 'center', transform: `translateY(${textY}px)`, opacity: textOpacity }}>
+          <div
+            style={{
+              fontFamily: 'Montserrat, sans-serif',
+              fontSize: 96,
+              fontWeight: 800,
+              letterSpacing: 2,
+              color: '#ffffff',
+            }}
+          >
+            CHOCOMOTION
+          </div>
+          <div
+            style={{
+              marginTop: 12,
+              fontFamily: 'Montserrat, sans-serif',
+              fontSize: 36,
+              color: '#e2e8f0',
+            }}
+          >
+            The only SEO agency you&apos;ll need
+          </div>
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};

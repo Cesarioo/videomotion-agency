@@ -1,37 +1,27 @@
+
 import { AbsoluteFill, Sequence } from 'remotion';
-import AnimatedList from '../templates/animated-list.js';
-import AnimatedText from '../templates/animated-text.js';
-import BounceText from '../templates/bounce-text.js';
-import BubblePopText from '../templates/bubble-pop-text.js';
-import CardFlip from '../templates/card-flip.js';
-import FloatingBubbleText from '../templates/floating-bubble-text.js';
-import GeometricPatterns from '../templates/geometric-patterns.js';
-import GlitchText from '../templates/glitch-text.js';
-import LiquidWave from '../templates/liquid-wave.js';
-import MatrixRain from '../templates/matrix-rain.js';
-import ParticleExplosion from '../templates/particle-explosion.js';
-import PulsingText from '../templates/pulsing-text.js';
-import SlideText from '../templates/slide-text.js';
-import SoundWave from '../templates/sound-wave.js';
-import TypewriterSubtitle from '../templates/typewriter-subtitle.js';
+import { Audio } from '@remotion/media';
+import { GoogleSearch } from '../templates/google-search';
+import { GoogleSearchResults } from '../templates/google-results-fountain';
+import { ThreeThemesScene } from '../templates/3pillars';
+import { FirstPillarScene } from '../templates/circleFeatures';
+import { SecondPillarScene } from '../templates/planning';
+import { DeliveryScene } from '../templates/delivery';
+import { SeoGoesUp } from '../templates/seogoesup';
+import { OutroScene } from '../templates/outro';
+
 
 const TEMPLATES = {
-  'animated-list': AnimatedList,
-  'animated-text': AnimatedText,
-  'bounce-text': BounceText,
-  'bubble-pop-text': BubblePopText,
-  'card-flip': CardFlip,
-  'floating-bubble-text': FloatingBubbleText,
-  'geometric-patterns': GeometricPatterns,
-  'glitch-text': GlitchText,
-  'liquid-wave': LiquidWave,
-  'matrix-rain': MatrixRain,
-  'particle-explosion': ParticleExplosion,
-  'pulsing-text': PulsingText,
-  'slide-text': SlideText,
-  'sound-wave': SoundWave,
-  'typewriter-subtitle': TypewriterSubtitle,
+  'google-search': GoogleSearch,
+  'google-result': GoogleSearchResults,
+  '3pillars': ThreeThemesScene,
+  'circleFeatures': FirstPillarScene,
+  'planning': SecondPillarScene,
+  'delivery': DeliveryScene,
+  'seogoesup': SeoGoesUp,
+  'outro': OutroScene
 };
+
 
 export interface Scene {
   template: keyof typeof TEMPLATES;
@@ -45,9 +35,11 @@ export interface Scene {
 
 export interface MainProps {
   scenes: Scene[];
+  voiceoverSrc?: string;
+  musicSrc?: string;
 }
 
-export const Main: React.FC<MainProps> = ({ scenes }) => {
+export const Main: React.FC<MainProps> = ({ scenes, voiceoverSrc, musicSrc }) => {
   let currentFrame = 0;
 
   if (!scenes || scenes.length === 0) {
@@ -56,6 +48,8 @@ export const Main: React.FC<MainProps> = ({ scenes }) => {
 
   return (
     <AbsoluteFill>
+      {musicSrc ? <Audio src={musicSrc} volume={0.18} /> : null}
+      {voiceoverSrc ? <Audio src={voiceoverSrc} volume={1} /> : null}
       {scenes.map((scene, index) => {
         const Template = TEMPLATES[scene.template];
         const from = currentFrame;
