@@ -188,9 +188,20 @@ const Panel: React.FC<{
 };
 
 
+// --- Props Type ---
+export type ThreeThemesScenesProps = {
+  pillar1?: string;
+  pillar2?: string;
+  pillar3?: string;
+};
+
 // --- Main Scene ---
 
-export const ThreeThemesScene: React.FC = () => {
+export const ThreeThemesScene: React.FC<ThreeThemesScenesProps> = ({
+  pillar1 = 'Audit',
+  pillar2 = 'Planning',
+  pillar3 = 'Deliverying',
+}) => {
   const frame = useCurrentFrame();
   const { width } = useVideoConfig();
 
@@ -229,7 +240,7 @@ export const ThreeThemesScene: React.FC = () => {
 
         {/* 1. Audit */}
         <Panel
-            title="Audit"
+            title={pillar1}
             color={COLOR_TECH}
             delay={0}
             zIndex={3}
@@ -241,7 +252,7 @@ export const ThreeThemesScene: React.FC = () => {
 
         {/* 2. Planning */}
         <Panel 
-            title="Planning" 
+            title={pillar2} 
             color={COLOR_CONTENT} 
             delay={5} 
             zIndex={2} 
@@ -252,7 +263,7 @@ export const ThreeThemesScene: React.FC = () => {
 
         {/* 3. Deliverying */}
         <Panel 
-            title="Deliverying" 
+            title={pillar3} 
             color={COLOR_LINKS} 
             delay={10} 
             zIndex={1} 

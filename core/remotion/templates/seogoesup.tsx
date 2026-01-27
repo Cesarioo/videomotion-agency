@@ -179,7 +179,7 @@ const SearchResultItem: React.FC<{ data: ResultData; opacity: number }> = ({ dat
   </div>
 );
 
-const Header = () => (
+const Header: React.FC<{ keyword: string }> = ({ keyword }) => (
   <div
     style={{
       position: 'absolute',
@@ -216,12 +216,18 @@ const Header = () => (
         fontSize: 20,
       }}
     >
-      Your Client Service Keywords
+      {keyword}
     </div>
   </div>
 );
 
-export const SeoGoesUp: React.FC = () => {
+export type SeoGoesUpProps = {
+  keyword?: string;
+};
+
+export const SeoGoesUp: React.FC<SeoGoesUpProps> = ({
+  keyword = 'Your Client Service Keywords',
+}) => {
   const frame = useCurrentFrame();
   const { height } = useVideoConfig();
 
@@ -280,7 +286,7 @@ export const SeoGoesUp: React.FC = () => {
   return (
     <AbsoluteFill style={{ backgroundColor: 'white' }}>
       <AbsoluteFill style={{ transform: `scale(${currentScale})`, transformOrigin: '0% 0%' }}>
-        <Header />
+        <Header keyword={keyword} />
 
         <div
           style={{

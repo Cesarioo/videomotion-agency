@@ -5,6 +5,7 @@ import { config } from "dotenv";
 import companiesRoutes from "./routes/companies.js";
 import videoRoutes from "./routes/video.js";
 import parserRoutes from "./routes/parser.js";
+import llmRoutes from "./routes/llm.js";
 import { verifyApiKey } from "./hooks/auth.js";
 
 // Load environment variables
@@ -40,6 +41,7 @@ app.addHook("onRequest", verifyApiKey);
 await app.register(companiesRoutes, { prefix: "/api" });
 await app.register(videoRoutes, { prefix: "/api" });
 await app.register(parserRoutes, { prefix: "/api" });
+await app.register(llmRoutes, { prefix: "/api" });
 
 await app.register(swaggerUI, {
   routePrefix: "/docs",

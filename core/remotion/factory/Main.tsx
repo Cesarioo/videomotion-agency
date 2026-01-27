@@ -1,4 +1,3 @@
-
 import { AbsoluteFill, Sequence, staticFile } from 'remotion';
 import { Audio } from '@remotion/media';
 import { GoogleSearch } from '../templates/google-search';
@@ -10,7 +9,6 @@ import { DeliveryScene } from '../templates/delivery';
 import { SeoGoesUp } from '../templates/seogoesup';
 import { OutroScene } from '../templates/outro';
 
-
 const TEMPLATES = {
   'google-search': GoogleSearch,
   'google-result': GoogleSearchResults,
@@ -19,18 +17,13 @@ const TEMPLATES = {
   'planning': SecondPillarScene,
   'delivery': DeliveryScene,
   'seogoesup': SeoGoesUp,
-  'outro': OutroScene
-};
-
+  'outro': OutroScene,
+} as const;
 
 export interface Scene {
   template: keyof typeof TEMPLATES;
   durationInFrames: number;
-  props: {
-    text: string;
-    primaryColor: string;
-    secondaryColor: string;
-  };
+  props: Record<string, unknown>;
 }
 
 export interface MainProps {
@@ -38,28 +31,30 @@ export interface MainProps {
   musicSrc?: string;
 }
 
-// Transition overlap duration in frames
 const OUTRO_OVERLAP = 25;
 
 export const Main: React.FC<MainProps> = ({ scenes, musicSrc }) => {
-  let currentFrame = 0;
-
   if (!scenes || scenes.length === 0) {
-    return <AbsoluteFill style={{ backgroundColor: 'black' }} />;
+    return (
+      <AbsoluteFill style={{ backgroundColor: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: '#fff', fontSize: 48, fontFamily: 'sans-serif' }}>
+          No scenes provided
+        </div>
+      </AbsoluteFill>
+    );
   }
 
-  // Calculate scene timings, with overlap for outro transition
+  let currentFrame = 0;
+
   const sceneTimings = scenes.map((scene, index) => {
     const isOutro = scene.template === 'outro';
     const isBeforeOutro = index < scenes.length - 1 && scenes[index + 1]?.template === 'outro';
 
     const from = currentFrame;
-    // If this is the scene before outro, extend its duration to overlap
     const duration = isBeforeOutro
       ? scene.durationInFrames + OUTRO_OVERLAP
       : scene.durationInFrames;
 
-    // Outro starts earlier to overlap with previous scene
     const adjustedFrom = isOutro ? from - OUTRO_OVERLAP : from;
 
     currentFrame += scene.durationInFrames;
@@ -77,7 +72,7 @@ export const Main: React.FC<MainProps> = ({ scenes, musicSrc }) => {
         return (
           <Sequence key={index} from={from} durationInFrames={duration}>
             <Audio src={sceneAudioSrc} volume={1} />
-            <Template {...scene.props} />
+            <Template {...(scene.props as any)} />
           </Sequence>
         );
       })}

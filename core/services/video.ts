@@ -2,104 +2,148 @@ import { bundle } from '@remotion/bundler';
 import { renderMedia, selectComposition } from '@remotion/renderer';
 import path from 'path';
 import fs from 'fs';
+import { textToSpeech } from './llm.js';
 
-export async function createVideo() {
-  // Ensure output directory exists
+// Path to context.json
+const contextPath = path.resolve(process.cwd(), 'core/remotion/templates/context.json');
+
+/**
+ * Load context.json fresh (allows hot-reloading during development)
+ */
+function loadContext(): VideoContext {
+  return JSON.parse(fs.readFileSync(contextPath, 'utf-8'));
+}
+
+interface SceneContext {
+  id: string;
+  context: string;
+  durationInFrames: number;
+  durationInSeconds: number;
+  base_text: string;
+  defaultProps: Record<string, unknown>;
+}
+
+interface Template {
+  name: string;
+  scenes: string[];
+}
+
+interface VideoContext {
+  scenes: SceneContext[];
+  templates: Template[];
+  metadata: {
+    fps: number;
+  };
+}
+
+interface CreateVideoParams {
+  type: string;
+  variables: Record<string, string>;
+}
+
+/**
+ * Replaces variables in text with their values
+ * Variables are in format {variable_name}
+ */
+function replaceVariables(text: string, variables: Record<string, unknown>): string {
+  let result = text;
+  for (const [key, value] of Object.entries(variables)) {
+    if (typeof value === 'string') {
+      result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
+    }
+  }
+  return result;
+}
+
+/**
+ * Extracts variable names from text (format: {variable_name})
+ */
+function extractVariables(text: string): string[] {
+  const matches = text.match(/\{(\w+)\}/g);
+  if (!matches) return [];
+  return matches.map(m => m.slice(1, -1));
+}
+
+/**
+ * Creates a video from a template type with dynamic variables
+ * @param params - The video creation parameters
+ * @param params.type - The template type (e.g., 'seo-agency')
+ * @param params.variables - Variables to replace in scene texts (e.g., { agency_name: 'MyAgency' })
+ */
+export async function createVideo(params: CreateVideoParams) {
+  const { type, variables } = params;
+  const videoContext = loadContext();
+
+  // Find the template by type
+  const template = videoContext.templates.find(t => t.name === type);
+  if (!template) {
+    throw new Error(`Template type '${type}' not found. Available types: ${videoContext.templates.map(t => t.name).join(', ')}`);
+  }
+
+  // Get scenes for this template
+  const sceneContexts = template.scenes.map(sceneId => {
+    const scene = videoContext.scenes.find(s => s.id === sceneId);
+    if (!scene) {
+      throw new Error(`Scene '${sceneId}' not found in context`);
+    }
+    return scene;
+  });
+
+  // Ensure output and public directories exist
   const outDir = path.resolve('out');
+  const publicDir = path.resolve(process.cwd(), 'core/remotion/public');
+  
   if (!fs.existsSync(outDir)) {
     fs.mkdirSync(outDir);
   }
 
-  // --- Randomization Logic ---
+  // Generate audio for each scene sequentially and save to public folder
+  console.log('Generating audio for scenes...');
+  const generatedAudioFiles: string[] = [];
 
-  const TEMPLATE_NAMES = [
-    'animated-list',
-    'animated-text',
-    'bounce-text',
-    'bubble-pop-text',
-    'card-flip',
-    'floating-bubble-text',
-    'geometric-patterns',
-    'glitch-text',
-    'liquid-wave',
-    'matrix-rain',
-    'particle-explosion',
-    'pulsing-text',
-    'slide-text',
-    'sound-wave',
-    'typewriter-subtitle',
-  ];
-
-  // Weighted Color Palettes
-  const COLOR_PALETTES = [
-    { weight: 40, primary: '#3b82f6', secondary: '#93c5fd' }, // Blue (40%)
-    { weight: 20, primary: '#ef4444', secondary: '#fca5a5' }, // Red (20%)
-    { weight: 15, primary: '#10b981', secondary: '#6ee7b7' }, // Green (15%)
-    { weight: 10, primary: '#f59e0b', secondary: '#fcd34d' }, // Amber (10%)
-    { weight: 10, primary: '#8b5cf6', secondary: '#c4b5fd' }, // Violet (10%)
-    { weight: 5,  primary: '#ec4899', secondary: '#f9a8d4' }, // Pink (5%)
-  ];
-
-  const SAMPLE_TEXTS = [
-    "Welcome to Chocomotion",
-    "Video Editing Made Easy",
-    "Automated Generation",
-    "Dynamic Content",
-    "Engaging Visuals",
-    "Scale Your Production",
-    "Create More, Faster",
-    "The Future of Video",
-  ];
-
-  function getRandomPalette() {
-    const totalWeight = COLOR_PALETTES.reduce((sum, p) => sum + p.weight, 0);
-    let random = Math.random() * totalWeight;
+  for (const sceneContext of sceneContexts) {
+    // Merge defaultProps with user-provided variables (user variables override defaults)
+    const mergedProps = {
+      ...sceneContext.defaultProps,
+      ...variables,
+    };
+    const text = replaceVariables(sceneContext.base_text, mergedProps);
+    console.log(`Generating audio for scene '${sceneContext.id}': "${text.substring(0, 50)}..."`);
     
-    for (const palette of COLOR_PALETTES) {
-      if (random < palette.weight) {
-        return { primary: palette.primary, secondary: palette.secondary };
-      }
-      random -= palette.weight;
-    }
-    return COLOR_PALETTES[0];
+    const audioBuffer = await textToSpeech(text, 'male');
+    const audioPath = path.join(publicDir, `${sceneContext.id}.mp3`);
+    
+    fs.writeFileSync(audioPath, audioBuffer);
+    generatedAudioFiles.push(audioPath);
+    console.log(`Audio saved: ${audioPath}`);
   }
 
-  const getRandomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
-  const getRandomItem = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
-
-  // 1. Generate random number of scenes (2 to 5)
-  const sceneCount = getRandomInt(5, 12);
-  const scenes = [];
-
-  for (let i = 0; i < sceneCount; i++) {
-    const template = getRandomItem(TEMPLATE_NAMES);
-    const { primary, secondary } = getRandomPalette();
-    const text = getRandomItem(SAMPLE_TEXTS);
-    const durationInFrames = 90; // 3 seconds per scene
-
-    scenes.push({
-      template,
-      durationInFrames,
+  // Build scenes for Remotion
+  const scenes = sceneContexts.map(sceneContext => {
+    // Merge defaultProps with user-provided variables
+    const mergedProps = {
+      ...sceneContext.defaultProps,
+      ...variables,
+    };
+    return {
+      template: sceneContext.id,
+      durationInFrames: sceneContext.durationInFrames,
       props: {
-        text,
-        primaryColor: primary,
-        secondaryColor: secondary,
+        ...mergedProps,
+        text: replaceVariables(sceneContext.base_text, mergedProps),
       },
-    });
-  }
+    };
+  });
 
   const inputProps = { scenes };
 
-  // ---------------------------
-
-  // 1. Bundle the project
-  // We point to the index.ts file which calls registerRoot
+  // Bundle the project
   const entryPoint = path.resolve(process.cwd(), 'core/remotion/index.ts');
   
   console.log('Bundling video...');
   const bundled = await bundle({
     entryPoint,
-    // Optional: caching for faster subsequent bundles
+    publicDir,
     webpackOverride: (config) => {
       return {
         ...config,
@@ -113,37 +157,101 @@ export async function createVideo() {
     }, 
   });
 
-  // 2. Select composition
+  // Select composition
   const composition = await selectComposition({
     serveUrl: bundled,
     id: 'Main',
-    inputProps, // Pass props here to calculate metadata correctly
+    inputProps,
   });
 
-  // 3. Render
-  const fileName = `video-${Date.now()}.mp4`;
+  // Render
+  const fileName = `video-${type}-${Date.now()}.mp4`;
   const outputLocation = path.join(outDir, fileName);
   
-  console.log('Rendering video...');
+  const renderStartTime = Date.now();
+  let lastProgressLog = 0;
+  
+  console.log(`Rendering video (${composition.durationInFrames} frames)...`);
   await renderMedia({
     composition,
     serveUrl: bundled,
     codec: 'h264',
     outputLocation,
-    inputProps, // Pass props here for rendering
+    inputProps,
+    onProgress: ({ renderedFrames, encodedFrames, renderedDoneIn, encodedDoneIn }) => {
+      const now = Date.now();
+      // Log progress every 2 seconds to avoid spam
+      if (now - lastProgressLog >= 2000) {
+        lastProgressLog = now;
+        const progress = Math.round((renderedFrames / composition.durationInFrames) * 100);
+        const estimatedSecondsLeft = renderedDoneIn !== null 
+          ? Math.ceil(renderedDoneIn / 1000)
+          : null;
+        
+        const timeLeftStr = estimatedSecondsLeft !== null
+          ? `~${estimatedSecondsLeft}s remaining`
+          : 'calculating...';
+        
+        console.log(`Rendering: ${progress}% (${renderedFrames}/${composition.durationInFrames} frames) - ${timeLeftStr}`);
+      }
+    },
   });
 
-  console.log(`Video rendered to ${outputLocation}`);
+  const renderDuration = ((Date.now() - renderStartTime) / 1000).toFixed(1);
+  console.log(`Video rendered to ${outputLocation} in ${renderDuration}s`);
 
   // Read file to buffer
   const buffer = fs.readFileSync(outputLocation);
 
-  // Clean up: delete local file
+  // Clean up: delete local video file
   fs.unlinkSync(outputLocation);
-  console.log(`Local file deleted: ${outputLocation}`);
+  console.log(`Local video file deleted: ${outputLocation}`);
+
+  // Clean up: delete generated audio files
+  console.log('Cleaning up generated audio files...');
+  for (const audioPath of generatedAudioFiles) {
+    try {
+      fs.unlinkSync(audioPath);
+      console.log(`Deleted: ${audioPath}`);
+    } catch (e) {
+      console.warn(`Failed to delete audio file: ${audioPath}`);
+    }
+  }
 
   return {
     buffer,
     fileName,
   };
+}
+
+/**
+ * Get available template types
+ */
+export function getAvailableTemplates(): string[] {
+  const videoContext = loadContext();
+  return videoContext.templates.map(t => t.name);
+}
+
+/**
+ * Get required variables for a template type
+ * Returns variables found in base_text patterns like {variable_name}
+ */
+export function getTemplateVariables(type: string): string[] {
+  const videoContext = loadContext();
+  const template = videoContext.templates.find(t => t.name === type);
+  
+  if (!template) {
+    return [];
+  }
+
+  // Collect all unique variables from base_text of all scenes in the template
+  const variables = new Set<string>();
+  for (const sceneId of template.scenes) {
+    const scene = videoContext.scenes.find(s => s.id === sceneId);
+    if (scene) {
+      extractVariables(scene.base_text).forEach(v => variables.add(v));
+    }
+  }
+
+  return Array.from(variables);
 }

@@ -173,7 +173,7 @@ const SearchResultItem: React.FC<{ data: ResultData }> = ({ data }) => {
 };
 
 // --- 3. Component: Static Header ---
-const Header = () => (
+const Header: React.FC<{ keyword: string }> = ({ keyword }) => (
   <div style={{
     position: 'absolute', top: 0, left: 0, width: '100%', height: HEADER_HEIGHT,
     backgroundColor: 'white', borderBottom: '1px solid #ebebeb', zIndex: 10,
@@ -191,13 +191,20 @@ const Header = () => (
       width: 800, height: 58, borderRadius: 30, border: '1px solid transparent',
       boxShadow: '0 2px 5px 1px rgba(64,60,67,.16)', display: 'flex', alignItems: 'center', padding: '0 26px', fontSize: 20
     }}>
-      Your Client Service Keywords
+      {keyword}
     </div>
   </div>
 );
 
+// --- Props Type ---
+export type GoogleSearchResultsProps = {
+  keyword?: string;
+};
+
 // --- 4. Main Scene ---
-export const GoogleSearchResults: React.FC = () => {
+export const GoogleSearchResults: React.FC<GoogleSearchResultsProps> = ({ 
+  keyword = 'Your Client Service Keywords' 
+}) => {
   const frame = useCurrentFrame();
   const { height, width } = useVideoConfig();
 
@@ -392,7 +399,7 @@ export const GoogleSearchResults: React.FC = () => {
         }}
       >
         <div style={{ opacity: fadeOutOpacity }}>
-          <Header />
+          <Header keyword={keyword} />
         </div>
 
         <div

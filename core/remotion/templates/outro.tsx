@@ -2,10 +2,18 @@ import React from 'react';
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig, Easing } from 'remotion';
 
 const BG = '#0f172a';
-const ACCENT = '#fbbf24';
-const LOGO_URL = 'https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/logo.png';
 
-export const OutroScene: React.FC = () => {
+export type OutroSceneProps = {
+  logo?: string;
+  agency_name?: string;
+  tagline?: string;
+};
+
+export const OutroScene: React.FC<OutroSceneProps> = ({
+  logo = 'https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/logo.png',
+  agency_name = 'CHOCOMOTION',
+  tagline = "The only SEO agency you'll need",
+}) => {
   const frame = useCurrentFrame();
   const { fps, height } = useVideoConfig();
 
@@ -42,8 +50,8 @@ export const OutroScene: React.FC = () => {
           }}
         >
           <img
-            src={LOGO_URL}
-            alt="Chocomotion logo"
+            src={logo}
+            alt={`${agency_name} logo`}
             style={{ width: 240, height: 240, objectFit: 'contain' }}
           />
         </div>
@@ -58,7 +66,7 @@ export const OutroScene: React.FC = () => {
               color: '#ffffff',
             }}
           >
-            CHOCOMOTION
+            {agency_name}
           </div>
           <div
             style={{
@@ -68,7 +76,7 @@ export const OutroScene: React.FC = () => {
               color: '#e2e8f0',
             }}
           >
-            The only SEO agency you&apos;ll need
+            {tagline}
           </div>
         </div>
       </div>

@@ -83,7 +83,7 @@ const LinkIcon: React.FC<{ size: number; color: string }> = ({ size, color }) =>
   </svg>
 );
 
-const AUDITS: AuditItem[] = [
+const DEFAULT_AUDITS: AuditItem[] = [
   { label: 'SEO', color: '#0ea5e9', Icon: SearchIcon, angle: -90 },
   { label: 'Technical', color: '#111827', Icon: GearIcon, angle: 0 },
   { label: 'Content', color: '#22c55e', Icon: ContentIcon, angle: 90 },
@@ -216,9 +216,29 @@ const IconOrbitItem: React.FC<{
   );
 };
 
-export const FirstPillarScene: React.FC = () => {
+export type FirstPillarSceneProps = {
+  feature1?: string;
+  feature2?: string;
+  feature3?: string;
+  feature4?: string;
+};
+
+export const FirstPillarScene: React.FC<FirstPillarSceneProps> = ({
+  feature1 = 'SEO',
+  feature2 = 'Technical',
+  feature3 = 'Content',
+  feature4 = 'Backlinks',
+}) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
+
+  // Create audits with custom labels
+  const AUDITS: AuditItem[] = [
+    { label: feature1, color: '#0ea5e9', Icon: SearchIcon, angle: -90 },
+    { label: feature2, color: '#111827', Icon: GearIcon, angle: 0 },
+    { label: feature3, color: '#22c55e', Icon: ContentIcon, angle: 90 },
+    { label: feature4, color: '#7c3aed', Icon: LinkIcon, angle: 180 },
+  ];
 
   const rotation = interpolate(frame, [0, CONVERGE_START], [0, 60], {
     extrapolateRight: 'clamp',

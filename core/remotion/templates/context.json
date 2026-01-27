@@ -6,7 +6,9 @@
       "durationInFrames": 110,
       "durationInSeconds": 3.67,
       "base_text": "What if your could reach millions of potential clients from day one?",
-      "variables": []
+      "defaultProps": {
+        "text": "Best SEO agency near me"
+      }
     },
     {
       "id": "google-result",
@@ -14,7 +16,9 @@
       "durationInFrames": 260,
       "durationInSeconds": 8.67,
       "base_text": "Of course, there is a catch... With thousands of results out there... standing out is harder than ever. But what if your business could be THE ONE people find FIRST?",
-      "variables": []
+      "defaultProps": {
+        "keyword": "Best SEO agency near me"
+      }
     },
     {
       "id": "3pillars",
@@ -22,7 +26,12 @@
       "durationInFrames": 130,
       "durationInSeconds": 4.33,
       "base_text": "At {agency_name} our process is simple: we audit, plan and execute a TAILORED strategy accordingly.",
-      "variables": ["agency_name"]
+      "defaultProps": {
+        "agency_name": "ChocoMotion",
+        "pillar1": "Audit",
+        "pillar2": "Planning",
+        "pillar3": "Delivery"
+      }
     },
     {
       "id": "circleFeatures",
@@ -30,7 +39,12 @@
       "durationInFrames": 185,
       "durationInSeconds": 6.17,
       "base_text": "Our comprehensive audit covers every angle. From technical issues to content gaps and backlink opportunities.",
-      "variables": []
+      "defaultProps": {
+        "feature1": "SEO",
+        "feature2": "Technical",
+        "feature3": "Content",
+        "feature4": "Backlinks"
+      }
     },
     {
       "id": "planning",
@@ -38,7 +52,7 @@
       "durationInFrames": 250,
       "durationInSeconds": 8.33,
       "base_text": "We create a custom action plan for your business based on the audit. Every task is assigned, scheduled, and tracked so nothing falls through the cracks.",
-      "variables": []
+      "defaultProps": {}
     },
     {
       "id": "delivery",
@@ -46,7 +60,7 @@
       "durationInFrames": 485,
       "durationInSeconds": 16.17,
       "base_text": "Communication is our special key. We keep you updated every step of the way through Slack, email or whatever platform you use. When deliverables are ready, we immediately send them over or push to production if we have the access. Reports, designs, copy, everything you need, delivered on time so you don't loose yours.",
-      "variables": []
+      "defaultProps": {}
     },
     {
       "id": "seogoesup",
@@ -54,15 +68,21 @@
       "durationInFrames": 200,
       "durationInSeconds": 6.67,
       "base_text": "And the results speak for themselves. Watch your rankings climb as your business rises to the top of search results!",
-      "variables": []
+      "defaultProps": {
+        "keyword": "Best SEO agency near me"
+      }
     },
     {
       "id": "outro",
       "context": "Brand outro with logo reveal. The scene slides up from the bottom, revealing the company logo with a spin animation, followed by the company name and tagline.",
       "durationInFrames": 160,
       "durationInSeconds": 5.33,
-      "base_text": "{agency_name}. The only SEO agency you'll ever need. Let's grow together.",
-      "variables": ["agency_name"]
+      "base_text": "{agency_name}. {tagline}.",
+      "defaultProps": {
+        "agency_name": "ChocoMotion",
+        "logo": "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/logo.png",
+        "tagline": "The only SEO agency you'll need"
+      }
     },
     {
       "id": "store-front",
@@ -70,13 +90,18 @@
       "durationInFrames": 120,
       "durationInSeconds": 4.0,
       "base_text": "Welcome to {agency_name}. Your digital home on the web.",
-      "variables": ["agency_name"]
+      "defaultProps": {
+        "agency_name": "ChocoMotion"
+      }
+    }
+  ],
+  "templates":[
+    {
+      "name": "seo-agency",
+      "scenes": ["google-search", "google-result", "3pillars", "circleFeatures", "planning", "delivery", "seogoesup", "outro"]
     }
   ],
   "metadata": {
-    "fps": 30,
-    "defaultVariables": {
-      "agency_name": "ChocoMotion"
-    }
+    "fps": 30
   }
 }
