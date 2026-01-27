@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig, Easing } from 'remotion';
 
 const BG = '#0f172a';
 const ACCENT = '#fbbf24';
@@ -7,14 +7,21 @@ const LOGO_URL = 'https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/log
 
 export const OutroScene: React.FC = () => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, height } = useVideoConfig();
 
-  const logoIn = spring({ frame: frame - 4, fps, config: { damping: 12, stiffness: 140 } });
+  // Slide in from bottom animation
+  const slideIn = interpolate(frame, [0, 25], [height, 0], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: Easing.out(Easing.cubic),
+  });
+
+  const logoIn = spring({ frame: frame - 20, fps, config: { damping: 12, stiffness: 140 } });
   const logoScale = interpolate(logoIn, [0, 1], [0.7, 1]);
-  const logoY = interpolate(logoIn, [0, 1], [260, 0]);
+  const logoY = interpolate(logoIn, [0, 1], [60, 0]);
   const logoRotate = interpolate(logoIn, [0, 1], [180, 0]);
 
-  const textIn = spring({ frame: frame - 26, fps, config: { damping: 14, stiffness: 120 } });
+  const textIn = spring({ frame: frame - 35, fps, config: { damping: 14, stiffness: 120 } });
   const textOpacity = interpolate(textIn, [0, 1], [0, 1]);
   const textY = interpolate(textIn, [0, 1], [24, 0]);
 
@@ -25,6 +32,7 @@ export const OutroScene: React.FC = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        transform: `translateY(${slideIn}px)`,
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28 }}>

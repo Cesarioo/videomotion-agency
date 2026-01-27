@@ -45,6 +45,35 @@ const FolderIcon: React.FC<{ size: number; color: string }> = ({ size, color }) 
   </svg>
 );
 
+const Checkbox: React.FC<{ checked: boolean; scale: number }> = ({ checked, scale }) => (
+  <div
+    style={{
+      width: 24,
+      height: 24,
+      borderRadius: 6,
+      border: `2px solid ${checked ? ACCENT : BORDER}`,
+      backgroundColor: checked ? ACCENT : '#ffffff',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      transform: `scale(${scale})`,
+      transition: 'background-color 0.1s, border-color 0.1s',
+    }}
+  >
+    {checked && (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M5 12l5 5L20 7"
+          stroke="#ffffff"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    )}
+  </div>
+);
+
 export const DeliveryScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -101,26 +130,110 @@ export const DeliveryScene: React.FC = () => {
     easing: Easing.out(Easing.cubic),
   });
 
-  const dragStart = 300;
-  const dragPick = 320;
-  const dragEnd = 360;
+  // Checkbox click timings for each folder
+  const checkbox1Click = 300;
+  const checkbox2Click = 330;
+  const checkbox3Click = 360;
 
-  const folderStart = { x: 360, y: 420 };
-  const folderTarget = { x: 1040, y: 360 };
+  // Checkbox states (checked after click frame)
+  const checkbox1Checked = frame >= checkbox1Click + 5;
+  const checkbox2Checked = frame >= checkbox2Click + 5;
+  const checkbox3Checked = frame >= checkbox3Click + 5;
 
-  const dragProgress = interpolate(frame, [dragPick, dragEnd], [0, 1], {
+  // Checkbox click animations (scale down then up)
+  const checkbox1Scale = interpolate(frame, [checkbox1Click, checkbox1Click + 5, checkbox1Click + 10], [1, 0.8, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
-    easing: Easing.inOut(Easing.cubic),
+  });
+  const checkbox2Scale = interpolate(frame, [checkbox2Click, checkbox2Click + 5, checkbox2Click + 10], [1, 0.8, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  const checkbox3Scale = interpolate(frame, [checkbox3Click, checkbox3Click + 5, checkbox3Click + 10], [1, 0.8, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
   });
 
-  const folderX = interpolate(dragProgress, [0, 1], [folderStart.x, folderTarget.x]);
-  const folderY = interpolate(dragProgress, [0, 1], [folderStart.y, folderTarget.y]);
+  // Attachment appear animations
+  const attachment1In = spring({ frame: frame - checkbox1Click - 8, fps, config: { damping: 12, stiffness: 200 } });
+  const attachment2In = spring({ frame: frame - checkbox2Click - 8, fps, config: { damping: 12, stiffness: 200 } });
+  const attachment3In = spring({ frame: frame - checkbox3Click - 8, fps, config: { damping: 12, stiffness: 200 } });
+
+  // Panel is centered at (260, 160) in composition space (1920x1080)
+  const panelOffsetX = 270;
+  const panelOffsetY = 110;
+
+  // Checkbox positions in panel space (left panel checkboxes)
+  const checkboxPositions = [
+    { x: 58, y: 178 },  // Reports checkbox
+    { x: 58, y: 265 },  // Designs checkbox
+    { x: 58, y: 360 },  // Copy checkbox
+  ];
+
+  // Email typing timing
+  const typingStart = 390;
+  const typingEnd = 425;
+  const emailText = 'Here are all the deliveries.';
+  const typingProgress = interpolate(frame, [typingStart, typingEnd], [0, emailText.length], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  const typed = emailText.slice(0, Math.round(typingProgress));
+
+  // Finale animation - dim everything and bring send button forward
+  const finaleStart = 440;
+  const finaleDim = interpolate(frame, [finaleStart, finaleStart + 15], [1, 0.3], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+
+  // Send button grows and moves to center
+  const sendGrowProgress = interpolate(frame, [finaleStart, finaleStart + 20], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: Easing.out(Easing.cubic),
+  });
+
+  // Click happens after button is centered
+  const sendClickStart = finaleStart + 25;
+  const sendClick = interpolate(frame, [sendClickStart, sendClickStart + 10], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  const sendClickScale = interpolate(sendClick, [0, 0.5, 1], [1, 0.85, 1]);
+
+  // Final send button scale (starts normal, grows to 3x)
+  const sendFinalScale = interpolate(sendGrowProgress, [0, 1], [1, 3]) * sendClickScale;
+
+  // Zoom out after click - everything scales down revealing white background
+  const zoomOutStart = sendClickStart + 6;
+  const zoomOutEnd = zoomOutStart + 10;
+  const zoomOutProgress = interpolate(frame, [zoomOutStart, zoomOutEnd], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: Easing.in(Easing.cubic),
+  });
+  const zoomOutScale = interpolate(zoomOutProgress, [0, 1], [1, 0.05]);
+  const zoomOutOpacity = interpolate(zoomOutProgress, [0.4, 1], [1, 0], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+
+  // Email body position for typing (right panel)
+  const emailBodyX = 1100;
+  const emailBodyY = 300;
+  // Center of screen for finale
+  const centerX = 960;
+  const centerY = 540;
 
   const cursorX = interpolate(
     frame,
-    [20, 70, 85, 110, 140, 230, dragStart, dragPick, dragEnd, 385, 415],
-    [860, 860, 1080, 980, 1080, 1080, 520, folderStart.x + 12, folderTarget.x + 40, 1040, 1120],
+    [20, 70, 85, 110, 140, 230, 280, checkbox1Click, 315, checkbox2Click, 345, checkbox3Click, 380, typingStart, 430, finaleStart, finaleStart + 20],
+    [860, 860, 1080, 980, 1080, 1080,
+     checkboxPositions[0].x + panelOffsetX, checkboxPositions[0].x + panelOffsetX,
+     checkboxPositions[1].x + panelOffsetX, checkboxPositions[1].x + panelOffsetX,
+     checkboxPositions[2].x + panelOffsetX, checkboxPositions[2].x + panelOffsetX,
+     emailBodyX, emailBodyX, emailBodyX, centerX, centerX],
     {
       extrapolateLeft: 'clamp',
       extrapolateRight: 'clamp',
@@ -129,8 +242,12 @@ export const DeliveryScene: React.FC = () => {
   );
   const cursorY = interpolate(
     frame,
-    [20, 70, 85, 110, 140, 230, dragStart, dragPick, dragEnd, 385, 415],
-    [620, 620, 700, 560, 120, 120, 430, folderStart.y - 12, folderTarget.y - 20, 520, 560],
+    [20, 70, 85, 110, 140, 230, 280, checkbox1Click, 315, checkbox2Click, 345, checkbox3Click, 380, typingStart, 430, finaleStart, finaleStart + 20],
+    [620, 620, 700, 560, 120, 120,
+     checkboxPositions[0].y + panelOffsetY, checkboxPositions[0].y + panelOffsetY,
+     checkboxPositions[1].y + panelOffsetY, checkboxPositions[1].y + panelOffsetY,
+     checkboxPositions[2].y + panelOffsetY, checkboxPositions[2].y + panelOffsetY,
+     emailBodyY, emailBodyY, emailBodyY, centerY, centerY],
     {
       extrapolateLeft: 'clamp',
       extrapolateRight: 'clamp',
@@ -138,41 +255,53 @@ export const DeliveryScene: React.FC = () => {
     }
   );
 
-  const typingStart = 370;
-  const typingEnd = 405;
-  const emailText = 'Here are all the deliveries.';
-  const typingProgress = interpolate(frame, [typingStart, typingEnd], [0, emailText.length], {
+  // Cursor scales up during finale
+  const cursorScale = interpolate(frame, [finaleStart, finaleStart + 20], [1, 2.5], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
+    easing: Easing.out(Easing.cubic),
   });
-  const typed = emailText.slice(0, Math.round(typingProgress));
 
-  const sendClick = interpolate(frame, [420, 435], [0, 1], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
-  });
-  const sendScale = interpolate(sendClick, [0, 0.5, 1], [1, 0.92, 1]);
+  // Folder data for rendering
+  const folders = [
+    { label: 'Reports', color: ACCENT, checked: checkbox1Checked, scale: checkbox1Scale, attachIn: attachment1In },
+    { label: 'Designs', color: '#60a5fa', checked: checkbox2Checked, scale: checkbox2Scale, attachIn: attachment2In },
+    { label: 'Copy', color: '#60a5fa', checked: checkbox3Checked, scale: checkbox3Scale, attachIn: attachment3In },
+  ];
 
   return (
-    <AbsoluteFill style={{ backgroundColor: BG }}>
+    <AbsoluteFill style={{ backgroundColor: '#ffffff' }}>
+      {/* Zoom out container */}
       <div
         style={{
           position: 'absolute',
-          left: '50%',
-          top: '50%',
-          width: 1400,
-          height: 760,
-          backgroundColor: PANEL,
-          borderRadius: 24,
-          border: `1px solid ${BORDER}`,
-          boxShadow: '0 20px 45px rgba(15, 23, 42, 0.12)',
-          transform: `translate(-50%, -50%) scale(${panelScale})`,
-          opacity: panelOpacity,
-          overflow: 'hidden',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1.2fr',
+          inset: 0,
+          transform: `scale(${zoomOutScale})`,
+          opacity: zoomOutOpacity,
+          transformOrigin: 'center center',
         }}
       >
+        {/* Purple background */}
+        <AbsoluteFill style={{ backgroundColor: BG }} />
+
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            width: 1400,
+            height: 760,
+            backgroundColor: PANEL,
+            borderRadius: 24,
+            border: `1px solid ${BORDER}`,
+            boxShadow: '0 20px 45px rgba(15, 23, 42, 0.12)',
+            transform: `translate(-50%, -50%) scale(${panelScale})`,
+            opacity: panelOpacity * finaleDim,
+            overflow: 'hidden',
+            display: 'grid',
+            gridTemplateColumns: '1fr 1.2fr',
+          }}
+        >
         {/* Slack layout */}
         <div
           style={{
@@ -207,7 +336,7 @@ export const DeliveryScene: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', overflow: 'hidden' }}>
           <div
             style={{
               height: 64,
@@ -244,10 +373,137 @@ export const DeliveryScene: React.FC = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'flex-end',
-                gap: 18,
+                gap: 14,
                 flex: 1,
+                overflow: 'hidden',
               }}
             >
+              {/* Date separator - Last Friday */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, opacity: 0.3 }}>
+                <div style={{ flex: 1, height: 1, backgroundColor: BORDER }} />
+                <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 12, color: MUTED, fontWeight: 600 }}>
+                  Last Friday
+                </div>
+                <div style={{ flex: 1, height: 1, backgroundColor: BORDER }} />
+              </div>
+
+              {/* Message history - Last Friday */}
+              <div style={{ display: 'flex', gap: 12, opacity: 0.3 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 999, overflow: 'hidden' }}>
+                  <img src={SLACK_AVATAR_CLIENT} alt="ChocoMotion" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div>
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: MUTED }}>ChocoMotion · 3:42 PM</div>
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 16, color: HEADER }}>
+                    Hey team, project kickoff is next week!
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 12, opacity: 0.3 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 999, overflow: 'hidden' }}>
+                  <img src={SLACK_AVATAR_YOU} alt="Oscar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div>
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: MUTED }}>Oscar · 4:15 PM</div>
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 16, color: HEADER }}>
+                    Sounds good, I'll prepare the content outline
+                  </div>
+                </div>
+              </div>
+
+              {/* Date separator - Yesterday */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, opacity: 0.35 }}>
+                <div style={{ flex: 1, height: 1, backgroundColor: BORDER }} />
+                <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 12, color: MUTED, fontWeight: 600 }}>
+                  Yesterday
+                </div>
+                <div style={{ flex: 1, height: 1, backgroundColor: BORDER }} />
+              </div>
+
+              {/* Message history - Yesterday */}
+              <div style={{ display: 'flex', gap: 12, opacity: 0.35 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 999, overflow: 'hidden' }}>
+                  <img src={SLACK_AVATAR_CLIENT} alt="ChocoMotion" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div>
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: MUTED }}>ChocoMotion · 10:30 AM</div>
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 16, color: HEADER }}>
+                    How's the progress on the articles?
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 12, opacity: 0.35 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 999, overflow: 'hidden' }}>
+                  <img src={SLACK_AVATAR_YOU} alt="Oscar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div>
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: MUTED }}>Oscar · 11:02 AM</div>
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 16, color: HEADER }}>
+                    Going well! 3 out of 5 done already
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 12, opacity: 0.35 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 999, overflow: 'hidden' }}>
+                  <img src={SLACK_AVATAR_CLIENT} alt="ChocoMotion" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div>
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: MUTED }}>ChocoMotion · 11:05 AM</div>
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 16, color: HEADER }}>
+                    Great work! Let me know when they're ready
+                  </div>
+                </div>
+              </div>
+
+              {/* Date separator - Today */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, opacity: 0.5 }}>
+                <div style={{ flex: 1, height: 1, backgroundColor: BORDER }} />
+                <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 12, color: MUTED, fontWeight: 600 }}>
+                  Today
+                </div>
+                <div style={{ flex: 1, height: 1, backgroundColor: BORDER }} />
+              </div>
+
+              {/* Message history - Today (earlier) */}
+              <div style={{ display: 'flex', gap: 12, opacity: 0.45 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 999, overflow: 'hidden' }}>
+                  <img src={SLACK_AVATAR_CLIENT} alt="ChocoMotion" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div>
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: MUTED }}>ChocoMotion · 9:15 AM</div>
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 16, color: HEADER }}>
+                    Can you send the blog articles by EOD?
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 12, opacity: 0.5 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 999, overflow: 'hidden' }}>
+                  <img src={SLACK_AVATAR_YOU} alt="Oscar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div>
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: MUTED }}>Oscar · 9:22 AM</div>
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 16, color: HEADER }}>
+                    Sure! Just finishing up the last one now
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 12, opacity: 0.55 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 999, overflow: 'hidden' }}>
+                  <img src={SLACK_AVATAR_CLIENT} alt="ChocoMotion" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div>
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: MUTED }}>ChocoMotion · 9:24 AM</div>
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 16, color: HEADER }}>
+                    Perfect, thanks! 👍
+                  </div>
+                </div>
+              </div>
+
               {slackSent && (
                 <div style={{ display: 'flex', gap: 12 }}>
                   <div
@@ -316,7 +572,7 @@ export const DeliveryScene: React.FC = () => {
                   </div>
                   <div>
                     <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 14, color: MUTED }}>ChocoMotion · now</div>
-                    <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 20, color: HEADER }}>
+                    <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 22, color: HEADER }}>
                       {replyText}
                     </div>
                   </div>
@@ -383,21 +639,22 @@ export const DeliveryScene: React.FC = () => {
               Delivery Assets
             </div>
             <div style={{ marginTop: 30, display: 'grid', gap: 18 }}>
-              {['Reports', 'Designs', 'Copy'].map((label, index) => (
+              {folders.map((folder) => (
                 <div
-                  key={label}
+                  key={folder.label}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 16,
                     padding: '16px 18px',
                     borderRadius: 16,
-                    backgroundColor: '#f8fafc',
-                    border: `1px solid ${BORDER}`,
+                    backgroundColor: folder.checked ? '#f0fdf4' : '#f8fafc',
+                    border: `1px solid ${folder.checked ? ACCENT : BORDER}`,
                   }}
                 >
-                  <FolderIcon size={38} color={index === 0 ? ACCENT : '#60a5fa'} />
-                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 20, color: HEADER }}>{label}</div>
+                  <Checkbox checked={folder.checked} scale={folder.scale} />
+                  <FolderIcon size={38} color={folder.color} />
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 20, color: HEADER }}>{folder.label}</div>
                 </div>
               ))}
             </div>
@@ -423,7 +680,7 @@ export const DeliveryScene: React.FC = () => {
               <div
                 style={{
                   padding: '18px',
-                  minHeight: 220,
+                  minHeight: 140,
                   fontFamily: 'Montserrat, sans-serif',
                   fontSize: 20,
                   color: HEADER,
@@ -432,69 +689,80 @@ export const DeliveryScene: React.FC = () => {
               >
                 {typed}
               </div>
+
+              {/* Attachments section */}
+              {(checkbox1Checked || checkbox2Checked || checkbox3Checked) && (
+                <div
+                  style={{
+                    padding: '14px 18px',
+                    borderTop: `1px solid ${BORDER}`,
+                    backgroundColor: '#f8fafc',
+                  }}
+                >
+                  <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 14, color: MUTED, marginBottom: 10 }}>
+                    Attachments
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                    {folders.map((folder) => (
+                      folder.checked && (
+                        <div
+                          key={folder.label}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            padding: '8px 14px',
+                            borderRadius: 10,
+                            backgroundColor: '#ffffff',
+                            border: `1px solid ${BORDER}`,
+                            transform: `scale(${interpolate(folder.attachIn, [0, 1], [0.8, 1])})`,
+                            opacity: folder.attachIn,
+                          }}
+                        >
+                          <FolderIcon size={20} color={folder.color} />
+                          <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 14, color: HEADER }}>
+                            {folder.label}
+                          </div>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div
-              style={{
-                position: 'absolute',
-                right: 60,
-                top: 80,
-                width: 220,
-                height: 120,
-                borderRadius: 16,
-                border: `2px dashed ${BORDER}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: MUTED,
-                fontFamily: 'Montserrat, sans-serif',
-                fontSize: 16,
-                opacity: 0.7,
-              }}
-            >
-              Drop files
-            </div>
-
-            <div
-              style={{
-                position: 'absolute',
-                right: 60,
-                bottom: 50,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '14px 22px',
-                backgroundColor: RED,
-                color: '#ffffff',
-                borderRadius: 999,
-                fontFamily: 'Montserrat, sans-serif',
-                fontWeight: 700,
-                fontSize: 18,
-                transform: `scale(${sendScale})`,
-                boxShadow: '0 10px 20px rgba(239, 68, 68, 0.35)',
-              }}
-            >
-              Send
-            </div>
           </div>
         </div>
 
-        {/* Dragged folder */}
+      </div>
+
+        {/* Send Button - moves from panel to center during finale */}
         <div
           style={{
             position: 'absolute',
-            left: folderX,
-            top: folderY,
-            transform: `translate(-50%, -50%) scale(${interpolate(dragProgress, [0, 1], [1, 0.9])})`,
-            opacity: frame < dragPick ? 0 : 1,
-            zIndex: 20,
+            left: interpolate(sendGrowProgress, [0, 1], [1580, 960]),
+            top: interpolate(sendGrowProgress, [0, 1], [866, 540]),
+            transform: `translate(-50%, -50%) scale(${sendFinalScale})`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '14px 22px',
+            backgroundColor: RED,
+            color: '#ffffff',
+            borderRadius: 999,
+            fontFamily: 'Montserrat, sans-serif',
+            fontWeight: 700,
+            fontSize: 18,
+            boxShadow: `0 ${interpolate(sendGrowProgress, [0, 1], [10, 30])}px ${interpolate(sendGrowProgress, [0, 1], [20, 60])}px rgba(239, 68, 68, ${interpolate(sendGrowProgress, [0, 1], [0.35, 0.6])})`,
+            zIndex: 10,
+            opacity: emailIn,
           }}
         >
-          <FolderIcon size={64} color={ACCENT} />
+          Send
         </div>
-      </div>
 
-      <Cursor x={cursorX} y={cursorY} />
+        <Cursor x={cursorX} y={cursorY} scale={cursorScale} />
+      </div>
     </AbsoluteFill>
   );
 };

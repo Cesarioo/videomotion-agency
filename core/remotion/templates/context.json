@@ -1,0 +1,82 @@
+{
+  "scenes": [
+    {
+      "id": "google-search",
+      "context": "Google search page with animated typing. Shows a user typing a search query into Google's search bar with a blinking cursor, Google logo, and search buttons.",
+      "durationInFrames": 110,
+      "durationInSeconds": 3.67,
+      "base_text": "What if your could reach millions of potential clients from day one?",
+      "variables": []
+    },
+    {
+      "id": "google-result",
+      "context": "Google search results page scrolling animation. Rapidly scrolls through many search results before stopping at a highlighted result, simulating finding the perfect answer.",
+      "durationInFrames": 260,
+      "durationInSeconds": 8.67,
+      "base_text": "Of course, there is a catch... With thousands of results out there... standing out is harder than ever. But what if your business could be THE ONE people find FIRST?",
+      "variables": []
+    },
+    {
+      "id": "3pillars",
+      "context": "Three pillars of SEO visualization. Shows three animated cards representing Auditing, Planning and Executing with icons that animate and reveal.",
+      "durationInFrames": 130,
+      "durationInSeconds": 4.33,
+      "base_text": "At {agency_name} our process is simple: we audit, plan and execute a TAILORED strategy accordingly.",
+      "variables": ["agency_name"]
+    },
+    {
+      "id": "circleFeatures",
+      "context": "Circular orbit of SEO features. Four icons (SEO, Technical, Content, Backlinks) orbit around a central ring, then converge to the center and expand to fill the screen with green.",
+      "durationInFrames": 185,
+      "durationInSeconds": 6.17,
+      "base_text": "Our comprehensive audit covers every angle. From technical issues to content gaps and backlink opportunities.",
+      "variables": []
+    },
+    {
+      "id": "planning",
+      "context": "Project management dashboard with task list. Shows a planning interface with tasks being typed and added, including status labels, owners, and due dates. Cursor interacts with the interface.",
+      "durationInFrames": 250,
+      "durationInSeconds": 8.33,
+      "base_text": "We create a custom action plan for your business based on the audit. Every task is assigned, scheduled, and tracked so nothing falls through the cracks.",
+      "variables": []
+    },
+    {
+      "id": "delivery",
+      "context": "Slack chat transitioning to email delivery. Shows a Slack conversation about project completion, then transitions to an email interface where files are selected via checkboxes and attached as deliverables. Ends with a dramatic send button animation that zooms out.",
+      "durationInFrames": 485,
+      "durationInSeconds": 16.17,
+      "base_text": "Communication is our special key. We keep you updated every step of the way through Slack, email or whatever platform you use. When deliverables are ready, we immediately send them over or push to production if we have the access. Reports, designs, copy, everything you need, delivered on time so you don't loose yours.",
+      "variables": []
+    },
+    {
+      "id": "seogoesup",
+      "context": "SEO ranking improvement visualization. Similar to search results but focused on showing rankings going up, with the client's result rising to the top positions.",
+      "durationInFrames": 200,
+      "durationInSeconds": 6.67,
+      "base_text": "And the results speak for themselves. Watch your rankings climb as your business rises to the top of search results!",
+      "variables": []
+    },
+    {
+      "id": "outro",
+      "context": "Brand outro with logo reveal. The scene slides up from the bottom, revealing the company logo with a spin animation, followed by the company name and tagline.",
+      "durationInFrames": 160,
+      "durationInSeconds": 5.33,
+      "base_text": "{agency_name}. The only SEO agency you'll ever need. Let's grow together.",
+      "variables": ["agency_name"]
+    },
+    {
+      "id": "store-front",
+      "context": "Animated storefront/house with company sign. A simple house illustration with windows and a door, displaying the company name on a sign. Not currently used in main composition.",
+      "durationInFrames": 120,
+      "durationInSeconds": 4.0,
+      "base_text": "Welcome to {agency_name}. Your digital home on the web.",
+      "variables": ["agency_name"]
+    }
+  ],
+  "metadata": {
+    "fps": 30,
+    "defaultVariables": {
+      "agency_name": "ChocoMotion"
+    }
+  }
+}

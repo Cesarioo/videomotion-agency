@@ -5,8 +5,12 @@
     "@fastify/swagger-ui": "^5.2.4",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
-    "@remotion/bundler": "^4.0.409",
-    "@remotion/renderer": "^4.0.409",
+    "@remotion/bundler": "4.0.409",
+    "@remotion/cli": "4.0.409",
+    "@remotion/google-fonts": "4.0.409",
+    "@remotion/media": "4.0.409",
+    "@remotion/renderer": "4.0.409",
+    "@remotion/transitions": "4.0.409",
     "cheerio": "^1.2.0",
     "fastify": "^5.7.1",
     "pg": "^8.17.2",
@@ -14,7 +18,7 @@
     "puppeteer": "^24.36.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "remotion": "^4.0.409",
+    "remotion": "4.0.409",
     "sharp": "^0.34.5",
     "zod": "^3.22.3"
   },
@@ -36,7 +40,8 @@
     "db:studio": "prisma studio",
     "db:push": "prisma db push",
     "build": "tsc && tsc-alias",
-    "start": "node dist/api/server.js"
+    "start": "node dist/api/server.js",
+    "studio": "remotion studio"
   },
   "type": "module",
   "repository": {

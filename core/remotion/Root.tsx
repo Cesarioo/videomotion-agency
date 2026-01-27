@@ -1,5 +1,6 @@
 import { Composition, staticFile } from 'remotion';
-import { Main, MainProps } from './factory/Main';
+import { getAudioDurationInSeconds } from '@remotion/media-utils';
+import { Main, MainProps, Scene } from './factory/Main';
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -11,7 +12,6 @@ export const RemotionRoot: React.FC = () => {
       width={1920}
       height={1080}
       defaultProps={{
-        voiceoverSrc: staticFile('voicover.mp3'),
         musicSrc: staticFile('music.mp3'),
         scenes: [
           {
@@ -34,7 +34,7 @@ export const RemotionRoot: React.FC = () => {
           },
           {
             template: '3pillars',
-            durationInFrames: 120,
+            durationInFrames: 110,
             props: {
               text: '3pillars of Content',
               primaryColor: '#2c3e50',
@@ -43,7 +43,7 @@ export const RemotionRoot: React.FC = () => {
           },
           {
             template: 'circleFeatures',
-            durationInFrames: 200,
+            durationInFrames: 190,
             props: {
               text: 'Website Audit Plan',
               primaryColor: '#0ea5e9',
@@ -52,7 +52,7 @@ export const RemotionRoot: React.FC = () => {
           },
           {
             template: 'planning',
-            durationInFrames: 250,
+            durationInFrames: 200,
             props: {
               text: 'Client Planning',
               primaryColor: '#22c55e',
@@ -61,7 +61,7 @@ export const RemotionRoot: React.FC = () => {
           },
           {
             template: 'delivery',
-            durationInFrames: 450,
+            durationInFrames: 485,
             props: {
               text: 'Delivery',
               primaryColor: '#ef4444',
@@ -79,7 +79,7 @@ export const RemotionRoot: React.FC = () => {
           },
           {
             template: 'outro',
-            durationInFrames: 150,
+            durationInFrames: 160,
             props: {
               text: 'Outro',
               primaryColor: '#0f172a',
@@ -89,10 +89,56 @@ export const RemotionRoot: React.FC = () => {
         ]
       }}
       calculateMetadata={async ({ props }) => {
+        const FPS = 30;
+        const BUFFER_FRAMES = 10;
+        const OUTRO_OVERLAP = 25; // Must match Main.tsx
         const scenes = (props as unknown as MainProps).scenes || [];
-        const durationInFrames = scenes.reduce((acc, scene) => acc + scene.durationInFrames, 0);
+
+        // Adjust scene durations based on audio length
+        const adjustedScenes: Scene[] = await Promise.all(
+          scenes.map(async (scene, index) => {
+            try {
+              const audioSrc = staticFile(`${scene.template}.mp3`);
+              const audioDurationInSeconds = await getAudioDurationInSeconds(audioSrc);
+              const audioDurationInFrames = Math.ceil(audioDurationInSeconds * FPS);
+
+              // Check if this scene is followed by outro (will have overlap)
+              const nextScene = scenes[index + 1];
+              const isBeforeOutro = nextScene?.template === 'outro';
+
+              // For scenes before outro, audio must finish before overlap starts
+              // Effective duration is reduced by the overlap amount
+              const effectiveDuration = isBeforeOutro
+                ? scene.durationInFrames - OUTRO_OVERLAP
+                : scene.durationInFrames;
+
+              // Calculate gap between audio end and effective video end
+              const gap = effectiveDuration - audioDurationInFrames;
+
+              // If gap is less than buffer, extend to audio + buffer (+ overlap if before outro)
+              if (gap < BUFFER_FRAMES) {
+                const extraForOverlap = isBeforeOutro ? OUTRO_OVERLAP : 0;
+                return {
+                  ...scene,
+                  durationInFrames: audioDurationInFrames + BUFFER_FRAMES + extraForOverlap,
+                };
+              }
+            } catch (e) {
+              // If audio file not found, keep original duration
+              console.warn(`Audio not found for ${scene.template}, using base duration`);
+            }
+            return scene;
+          })
+        );
+
+        const durationInFrames = adjustedScenes.reduce((acc, scene) => acc + scene.durationInFrames, 0);
+
         return {
-          durationInFrames: Math.max(durationInFrames, 30), // Minimum 1 sec
+          durationInFrames: Math.max(durationInFrames, 30),
+          props: {
+            ...props,
+            scenes: adjustedScenes,
+          },
         };
       }}
     />
