@@ -26,17 +26,17 @@ model Company {
   id               String            @id @default(uuid())
   name             String
   websiteUrl       String            @map("website_url")
-  employees        Int
+  employees        Int               @default(0)
   industry         String
-  campaignId      String            @map("campaign_id")
-  primaryColor     String            @map("primary_color")
-  secondaryColor   String            @map("secondary_color")
-  fontFamily       String            @map("font_family")
-  logoUrl          String            @map("logo_url")
-  valueProp        String            @map("value_prop")
-  features         Json              @db.JsonB
-  targetAudience   String            @map("target_audience")
-  voiceTone        String            @map("voice_tone")
+  campaignId       String            @map("campaign_id")
+  primaryColor     String            @default("") @map("primary_color")
+  secondaryColor   String            @default("") @map("secondary_color")
+  fontFamily       String            @default("") @map("font_family")
+  logoUrl          String            @default("") @map("logo_url")
+  valueProp        String            @default("") @map("value_prop")
+  features         Json              @default("[]") @db.JsonB
+  targetAudience   String            @default("") @map("target_audience")
+  voiceTone        String            @default("") @map("voice_tone")
   videoStatus      VideoStatus       @default(none) @map("video_status")
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")

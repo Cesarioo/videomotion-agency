@@ -3,19 +3,21 @@
 // ============================================================================
 
 export interface CreateCompanyBody {
+  // Required fields
   name: string;
   websiteUrl: string;
-  employees: number;
-  industry: string;
   campaignId: string;
-  primaryColor: string;
-  secondaryColor: string;
-  fontFamily: string;
-  logoUrl: string;
-  valueProp: string;
-  features: unknown;
-  targetAudience: string;
-  voiceTone: string;
+  industry: string;
+  // Optional fields (will be populated by enrichment)
+  employees?: number;
+  primaryColor?: string;
+  secondaryColor?: string;
+  fontFamily?: string;
+  logoUrl?: string;
+  valueProp?: string;
+  features?: unknown;
+  targetAudience?: string;
+  voiceTone?: string;
   videoStatus?: string;
 }
 
@@ -118,27 +120,15 @@ export const createCompanySchema = {
   tags: ['companies'],
   body: {
     type: 'object',
-    required: [
-      'name',
-      'websiteUrl',
-      'employees',
-      'industry',
-      'campaignId',
-      'primaryColor',
-      'secondaryColor',
-      'fontFamily',
-      'logoUrl',
-      'valueProp',
-      'features',
-      'targetAudience',
-      'voiceTone',
-    ],
+    required: ['name', 'websiteUrl', 'campaignId', 'industry'],
     properties: {
+      // Required fields
       name: { type: 'string' },
       websiteUrl: { type: 'string' },
-      employees: { type: 'number' },
-      industry: { type: 'string' },
       campaignId: { type: 'string' },
+      industry: { type: 'string' },
+      // Optional fields (will be populated by enrichment)
+      employees: { type: 'number' },
       primaryColor: { type: 'string' },
       secondaryColor: { type: 'string' },
       fontFamily: { type: 'string' },
