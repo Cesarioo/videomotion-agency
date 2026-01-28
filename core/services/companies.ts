@@ -7,37 +7,40 @@ import { VideoStatus } from '@prisma/client';
 // ============================================================================
 
 export async function createCompany(data: {
+  // Required fields
   name: string;
   websiteUrl: string;
-  employees: number;
-  industry: string;
   campaignId: string;
-  primaryColor: string;
-  secondaryColor: string;
-  fontFamily: string;
-  logoUrl: string;
-  valueProp: string;
-  features: Prisma.InputJsonValue;
-  targetAudience: string;
-  voiceTone: string;
+  industry: string;
+  // Optional fields (have defaults in DB)
+  employees?: number;
+  primaryColor?: string;
+  secondaryColor?: string;
+  fontFamily?: string;
+  logoUrl?: string;
+  valueProp?: string;
+  features?: Prisma.InputJsonValue;
+  targetAudience?: string;
+  voiceTone?: string;
   videoStatus?: VideoStatus;
 }): Promise<Company> {
   return prisma.company.create({
     data: {
       name: data.name,
       websiteUrl: data.websiteUrl,
-      employees: data.employees,
-      industry: data.industry,
       campaignId: data.campaignId,
-      primaryColor: data.primaryColor,
-      secondaryColor: data.secondaryColor,
-      fontFamily: data.fontFamily,
-      logoUrl: data.logoUrl,
-      valueProp: data.valueProp,
-      features: data.features,
-      targetAudience: data.targetAudience,
-      voiceTone: data.voiceTone,
-      videoStatus: data.videoStatus || 'none',
+      industry: data.industry,
+      // Optional fields - only include if provided
+      ...(data.employees !== undefined && { employees: data.employees }),
+      ...(data.primaryColor !== undefined && { primaryColor: data.primaryColor }),
+      ...(data.secondaryColor !== undefined && { secondaryColor: data.secondaryColor }),
+      ...(data.fontFamily !== undefined && { fontFamily: data.fontFamily }),
+      ...(data.logoUrl !== undefined && { logoUrl: data.logoUrl }),
+      ...(data.valueProp !== undefined && { valueProp: data.valueProp }),
+      ...(data.features !== undefined && { features: data.features }),
+      ...(data.targetAudience !== undefined && { targetAudience: data.targetAudience }),
+      ...(data.voiceTone !== undefined && { voiceTone: data.voiceTone }),
+      ...(data.videoStatus !== undefined && { videoStatus: data.videoStatus }),
     },
   });
 }

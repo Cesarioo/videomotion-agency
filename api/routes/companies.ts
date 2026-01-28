@@ -81,7 +81,7 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
       try {
         const company = await createCompany({
           ...request.body,
-          features: request.body.features as Prisma.InputJsonValue,
+          features: request.body.features as Prisma.InputJsonValue | undefined,
           videoStatus: request.body.videoStatus as VideoStatus | undefined,
         });
 
