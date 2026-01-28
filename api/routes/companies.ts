@@ -19,6 +19,8 @@ import {
   updateFinalVideo,
   deleteFinalVideo,
 } from '@/core/services/companies.js';
+import { addEnrichJob } from '@/core/queues/enrichQueue.js';
+import { enrichCompany } from '@/core/services/enrich.js';
 import {
   createCompanySchema,
   getCompanySchema,
@@ -79,7 +81,20 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
           features: request.body.features as Prisma.InputJsonValue,
           videoStatus: request.body.videoStatus as VideoStatus | undefined,
         });
-        return reply.code(201).send(company);
+
+        // Queue enrichment job - video template is determined by industry
+        // Status will be updated to demo_scheduled after enrichment completes
+        request.log.info({ companyId: company.id, industry: company.industry }, 'Queueing enrichment and video generation');
+        
+        const job = await addEnrichJob({
+          companyId: company.id,
+          videoType: company.industry, // Industry determines the video template
+        });
+
+        return reply.code(201).send({
+          ...company,
+          jobId: job.id,
+        });
       } catch (error) {
         request.log.error(error, 'Failed to create company');
         return reply.code(500).send({ error: 'Failed to create company', details: String(error) });
@@ -142,6 +157,62 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
         return reply.send(company);
       } catch (error) {
         return reply.code(404).send({ error: 'Company not found' });
+      }
+    }
+  );
+
+  // Enrich Company
+  fastify.post<{ Params: CompanyParams }>(
+    '/companies/:id/enrich',
+    {
+      schema: {
+        description: 'Enrich company data by parsing their website and using AI to extract brand information',
+        tags: ['Companies'],
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+          },
+          required: ['id'],
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              enrichedData: {
+                type: 'object',
+                properties: {
+                  primaryColor: { type: 'string' },
+                  secondaryColor: { type: 'string' },
+                  valueProp: { type: 'string' },
+                  features: { type: 'array', items: { type: 'string' } },
+                  targetAudience: { type: 'string' },
+                  voiceTone: { type: 'string' },
+                },
+              },
+            },
+          },
+          404: {
+            type: 'object',
+            properties: {
+              error: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        request.log.info({ companyId: request.params.id }, 'Starting company enrichment');
+        const enrichedData = await enrichCompany(request.params.id);
+        return reply.send({ success: true, enrichedData });
+      } catch (error) {
+        request.log.error(error, 'Failed to enrich company');
+        if ((error as Error).message.includes('not found')) {
+          return reply.code(404).send({ error: 'Company not found' });
+        }
+        return reply.code(500).send({ error: 'Failed to enrich company', details: String(error) });
       }
     }
   );

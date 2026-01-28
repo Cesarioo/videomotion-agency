@@ -114,7 +114,7 @@ const companyResponseProperties = {
 };
 
 export const createCompanySchema = {
-  description: 'Create a new company',
+  description: 'Create a new company and optionally queue a demo video generation',
   tags: ['companies'],
   body: {
     type: 'object',
@@ -147,13 +147,16 @@ export const createCompanySchema = {
       features: {},
       targetAudience: { type: 'string' },
       voiceTone: { type: 'string' },
-      videoStatus: { type: 'string', enum: ['none', 'demo_started', 'demo_finished', 'final_progress', 'final'] },
+      videoStatus: { type: 'string', enum: ['none', 'demo_scheduled', 'demo_started', 'demo_finished', 'final_progress', 'final'] },
     },
   },
   response: {
     201: {
       type: 'object',
-      properties: companyResponseProperties,
+      properties: {
+        ...companyResponseProperties,
+        jobId: { type: 'string', description: 'Enrichment job ID (video will be auto-generated after enrichment)' },
+      },
     },
   },
 };
@@ -208,7 +211,7 @@ export const updateCompanySchema = {
       features: {},
       targetAudience: { type: 'string' },
       voiceTone: { type: 'string' },
-      videoStatus: { type: 'string', enum: ['none', 'demo_started', 'demo_finished', 'final_progress', 'final'] },
+      videoStatus: { type: 'string', enum: ['none', 'demo_scheduled', 'demo_started', 'demo_finished', 'final_progress', 'final'] },
     },
   },
   response: {

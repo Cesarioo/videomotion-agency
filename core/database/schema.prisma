@@ -13,6 +13,7 @@ datasource db {
 
 enum VideoStatus {
   none
+  demo_scheduled
   demo_started
   demo_finished
   final_progress

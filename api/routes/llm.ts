@@ -1,9 +1,16 @@
 import { FastifyInstance } from 'fastify';
-import { textToSpeech, VoiceType } from '@/core/services/llm.js';
+import { textToSpeech, VoiceType, askOpenAI } from '@/core/services/llm.js';
 
 interface TextToSpeechBody {
   text: string;
   voiceType: VoiceType;
+}
+
+interface AskOpenAIBody {
+  prompt: string;
+  systemPrompt?: string;
+  temperature?: number;
+  maxTokens?: number;
 }
 
 export default async function llmRoutes(fastify: FastifyInstance) {
@@ -46,6 +53,48 @@ export default async function llmRoutes(fastify: FastifyInstance) {
     } catch (error) {
       request.log.error(error, 'Failed to generate speech');
       return reply.code(500).send({ error: 'Failed to generate speech', details: String(error) });
+    }
+  });
+
+  // OpenAI - Simple prompt/response
+  fastify.post<{ Body: AskOpenAIBody }>('/llm/ask', {
+    schema: {
+      description: 'Send a prompt to OpenAI GPT-4o-mini and get a response',
+      tags: ['LLM'],
+      body: {
+        type: 'object',
+        required: ['prompt'],
+        properties: {
+          prompt: { type: 'string', description: 'The prompt to send to OpenAI' },
+          systemPrompt: { type: 'string', description: 'Optional system prompt to set context' },
+          temperature: { type: 'number', minimum: 0, maximum: 2, description: 'Sampling temperature (0-2)' },
+          maxTokens: { type: 'number', minimum: 1, description: 'Maximum tokens in response' },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            response: { type: 'string', description: 'The AI response' },
+          },
+        },
+      },
+    },
+  }, async (request, reply) => {
+    try {
+      const { prompt, systemPrompt, temperature, maxTokens } = request.body;
+
+      if (!prompt || prompt.trim().length === 0) {
+        return reply.code(400).send({ error: 'Prompt is required and cannot be empty' });
+      }
+
+      request.log.info({ promptLength: prompt.length }, 'Sending prompt to OpenAI...');
+      const response = await askOpenAI(prompt, { systemPrompt, temperature, maxTokens });
+
+      return reply.code(200).send({ response });
+    } catch (error) {
+      request.log.error(error, 'Failed to get OpenAI response');
+      return reply.code(500).send({ error: 'Failed to get OpenAI response', details: String(error) });
     }
   });
 }

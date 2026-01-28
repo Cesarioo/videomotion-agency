@@ -9,6 +9,7 @@ export interface ParsedData {
     screenshotPixels: Record<string, number>;
   };
   socialUrls: string[];
+  logoUrl: string | null;
 }
 
 const SOCIAL_DOMAINS = [
@@ -165,6 +166,102 @@ export async function parseUrl(url: string): Promise<ParsedData> {
     console.log(`[Parser] Found ${Object.keys(data.typographyMap).length} typography colors.`);
     console.log(`[Parser] Text length extracted: ${data.text.length} chars.`);
 
+    // Extract logo URL - use string to avoid transpilation artifacts
+    console.log('[Parser] Searching for logo...');
+    const extractLogo = `
+      () => {
+        const candidates = [];
+        const baseUrl = window.location.origin;
+
+        function makeAbsolute(src) {
+          if (!src) return '';
+          if (src.startsWith('data:')) return src;
+          if (src.startsWith('http://') || src.startsWith('https://')) return src;
+          if (src.startsWith('//')) return window.location.protocol + src;
+          if (src.startsWith('/')) return baseUrl + src;
+          return baseUrl + '/' + src;
+        }
+
+        // 1. Look for images with "logo" in attributes
+        const images = document.querySelectorAll('img');
+        images.forEach(function(img) {
+          const src = img.src || img.getAttribute('data-src') || '';
+          const alt = (img.alt || '').toLowerCase();
+          const className = (img.className || '').toLowerCase();
+          const id = (img.id || '').toLowerCase();
+          const parentClass = (img.parentElement && img.parentElement.className ? img.parentElement.className : '').toLowerCase();
+          
+          if (!src || src.startsWith('data:image/svg')) return;
+
+          var score = 0;
+          
+          if (src.toLowerCase().includes('logo')) score += 10;
+          if (alt.includes('logo')) score += 8;
+          if (className.includes('logo')) score += 8;
+          if (id.includes('logo')) score += 8;
+          if (parentClass.includes('logo')) score += 5;
+          if (alt.includes('brand')) score += 3;
+          if (className.includes('brand')) score += 3;
+          
+          var inHeader = img.closest('header, nav, [role="banner"]');
+          if (inHeader) score += 5;
+          
+          var rect = img.getBoundingClientRect();
+          if (rect.width >= 50 && rect.width <= 400 && rect.height >= 20 && rect.height <= 200) {
+            score += 3;
+          }
+
+          if (score > 0) {
+            candidates.push({ url: makeAbsolute(src), score: score });
+          }
+        });
+
+        // 2. Check OpenGraph image
+        var ogImage = document.querySelector('meta[property="og:image"]');
+        if (ogImage) {
+          var content = ogImage.getAttribute('content');
+          if (content) {
+            candidates.push({ url: makeAbsolute(content), score: 4 });
+          }
+        }
+
+        // 3. Check Twitter card image
+        var twitterImage = document.querySelector('meta[name="twitter:image"]');
+        if (twitterImage) {
+          var content = twitterImage.getAttribute('content');
+          if (content) {
+            candidates.push({ url: makeAbsolute(content), score: 3 });
+          }
+        }
+
+        // 4. Apple touch icon
+        var appleTouchIcon = document.querySelector('link[rel="apple-touch-icon"], link[rel="apple-touch-icon-precomposed"]');
+        if (appleTouchIcon) {
+          var href = appleTouchIcon.getAttribute('href');
+          if (href) {
+            candidates.push({ url: makeAbsolute(href), score: 6 });
+          }
+        }
+
+        // 5. Favicon (last resort)
+        var favicon = document.querySelector('link[rel="icon"], link[rel="shortcut icon"]');
+        if (favicon) {
+          var href = favicon.getAttribute('href');
+          if (href && !href.includes('.ico')) {
+            candidates.push({ url: makeAbsolute(href), score: 1 });
+          }
+        }
+
+        candidates.sort(function(a, b) { return b.score - a.score; });
+        return candidates.length > 0 ? candidates[0].url : null;
+      }
+    `;
+    
+    // @ts-ignore
+    const logoUrl = await page.evaluate(eval(extractLogo));
+
+    console.log(`[Parser] Logo found: ${logoUrl || 'none'}`);
+
     // Sort Maps by Weight - Limit to Top 50 to avoid massive payloads
     function sortMap(map: Record<string, number>): Record<string, number> {
       return Object.entries(map)
@@ -173,14 +270,15 @@ export async function parseUrl(url: string): Promise<ParsedData> {
         .reduce((r, [k, v]) => ({ ...r, [k]: v }), {} as Record<string, number>);
     }
 
-    const result = {
+    const result: ParsedData = {
       text: data.text,
       colors: {
         background: sortMap(data.backgroundMap),
         typography: sortMap(data.typographyMap),
         screenshotPixels: {},
       },
-      socialUrls: data.socialUrls
+      socialUrls: data.socialUrls,
+      logoUrl: logoUrl,
     };
 
     console.log('[Parser] Starting screenshot analysis...');

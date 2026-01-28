@@ -7,9 +7,15 @@ import videoRoutes from "./routes/video.js";
 import parserRoutes from "./routes/parser.js";
 import llmRoutes from "./routes/llm.js";
 import { verifyApiKey } from "./hooks/auth.js";
+import { startVideoWorker } from "@/core/workers/videoWorker.js";
+import { startEnrichWorker } from "@/core/workers/enrichWorker.js";
 
 // Load environment variables
 config();
+
+// Start workers
+startEnrichWorker();
+startVideoWorker();
 
 const app = Fastify({ logger: false });
 
@@ -53,3 +59,5 @@ app.get("/health", async () => {
 });
 
 await app.listen({ port: 3000, host: '0.0.0.0' });
+console.log('🚀 Server running on http://localhost:3000');
+console.log('📚 Swagger docs available at http://localhost:3000/docs');
