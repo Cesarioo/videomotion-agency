@@ -13,6 +13,7 @@ import {
   deleteEmployeeContact,
   createDemoVideo,
   getDemoVideo,
+  getDemoVideoByCompanyId,
   updateDemoVideo,
   deleteDemoVideo,
   createFinalVideo,
@@ -374,17 +375,45 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // Get Demo Video
-  fastify.get<{ Params: DemoVideoParams }>(
-    '/companies/demo-videos/:id',
+  // Get Demo Video by Company ID
+  fastify.get<{ Params: { companyId: string } }>(
+    '/companies/:companyId/demo-video',
     {
-      schema: getDemoVideoSchema,
+      schema: {
+        description: 'Get the most recent demo video for a company',
+        tags: ['Companies'],
+        params: {
+          type: 'object',
+          properties: {
+            companyId: { type: 'string' },
+          },
+          required: ['companyId'],
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              companyId: { type: 'string' },
+              videoLink: { type: 'string' },
+              createdAt: { type: 'string', format: 'date-time' },
+              updatedAt: { type: 'string', format: 'date-time' },
+            },
+          },
+          404: {
+            type: 'object',
+            properties: {
+              error: { type: 'string' },
+            },
+          },
+        },
+      },
     },
     async (request, reply) => {
       try {
-        const video = await getDemoVideo(request.params.id);
+        const video = await getDemoVideoByCompanyId(request.params.companyId);
         if (!video) {
-          return reply.code(404).send({ error: 'Demo video not found' });
+          return reply.code(404).send({ error: 'Demo video not found for this company' });
         }
         return reply.send(video);
       } catch (error) {

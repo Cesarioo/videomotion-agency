@@ -168,6 +168,13 @@ export async function getDemoVideo(id: string): Promise<DemoVideo | null> {
   });
 }
 
+export async function getDemoVideoByCompanyId(companyId: string): Promise<DemoVideo | null> {
+  return prisma.demoVideo.findFirst({
+    where: { companyId },
+    orderBy: { createdAt: 'desc' }, // Get the most recent demo video
+  });
+}
+
 export async function updateDemoVideo(
   id: string,
   data: Partial<{
