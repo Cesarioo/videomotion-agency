@@ -48,6 +48,17 @@ export async function getCompany(id: string): Promise<Company | null> {
   });
 }
 
+export async function getCompanyByName(name: string): Promise<Company | null> {
+  return prisma.company.findFirst({
+    where: { 
+      name: {
+        equals: name,
+        mode: 'insensitive', // Case-insensitive search
+      },
+    },
+  });
+}
+
 export async function updateCompany(
   id: string,
   data: Partial<{
