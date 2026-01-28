@@ -14,6 +14,7 @@ import {
   createDemoVideo,
   getDemoVideo,
   getDemoVideoByCompanyId,
+  incrementDemoVideoViews,
   updateDemoVideo,
   deleteDemoVideo,
   createFinalVideo,
@@ -415,6 +416,10 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
         if (!video) {
           return reply.code(404).send({ error: 'Demo video not found for this company' });
         }
+
+        // Increment views and update lastViewedAt
+        await incrementDemoVideoViews(request.params.companyId);
+
         return reply.send(video);
       } catch (error) {
         return reply.code(500).send({ error: 'Failed to get demo video' });

@@ -49,12 +49,14 @@ model Company {
 }
 
 model DemoVideo {
-  id        String   @id @default(uuid())
-  companyId String   @map("company_id")
-  videoLink String   @map("video_link")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id           String    @id @default(uuid())
+  companyId    String    @map("company_id")
+  videoLink    String    @map("video_link")
+  views        Int       @default(0)
+  lastViewedAt DateTime? @map("last_viewed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  company      Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@map("demo_videos")
   @@schema("clients")

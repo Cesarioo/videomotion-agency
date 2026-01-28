@@ -175,6 +175,25 @@ export async function getDemoVideoByCompanyId(companyId: string): Promise<DemoVi
   });
 }
 
+export async function incrementDemoVideoViews(companyId: string): Promise<DemoVideo | null> {
+  const demoVideo = await prisma.demoVideo.findFirst({
+    where: { companyId },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  if (!demoVideo) {
+    return null;
+  }
+
+  return prisma.demoVideo.update({
+    where: { id: demoVideo.id },
+    data: {
+      views: { increment: 1 },
+      lastViewedAt: new Date(),
+    },
+  });
+}
+
 export async function updateDemoVideo(
   id: string,
   data: Partial<{
