@@ -285,14 +285,14 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   // Create Employee Contact
-  fastify.post<{ Params : CreateEmployeeContactBody }>(
+  fastify.post<{ Body: CreateEmployeeContactBody }>(
     '/companies/employees',
     {
       schema: createEmployeeContactSchema,
     },
     async (request, reply) => {
       try {
-        const employee = await createEmployeeContact(request.params);
+        const employee = await createEmployeeContact(request.body);
         return reply.code(201).send(employee);
       } catch (error) {
         return reply.code(500).send({ error: 'Failed to create employee contact' });
