@@ -200,6 +200,7 @@ const IconOrbitItem: React.FC<{
       <div
         style={{
           marginTop: 10,
+          width: 140,
           textAlign: 'center',
           fontFamily: 'Montserrat, sans-serif',
           fontSize: 20,
