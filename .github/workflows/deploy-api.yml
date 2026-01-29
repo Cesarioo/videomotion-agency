@@ -57,12 +57,12 @@ jobs:
             docker stop chocomotion-api || true
             docker rm chocomotion-api || true
             
-            # Run new container
-            # --network="host" might be needed if DB is on localhost of the VM
+            # Run new container with host networking
+            # This allows the container to access services on localhost (like Kokoro TTS)
             docker run -d \
               --name chocomotion-api \
               --restart unless-stopped \
-              -p 3000:3000 \
+              --network="host" \
               --env-file .env \
               chocomotion-api
 
