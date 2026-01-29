@@ -23,7 +23,6 @@ RUN npm install
 # Copy Prisma schema and generate client
 COPY prisma.config.ts ./
 COPY core/database ./core/database
-RUN npm run db:migrate:deploy
 RUN npm run db:generate
 
 # Copy source code
@@ -35,6 +34,8 @@ RUN npm run build
 # Expose port
 EXPOSE 3000
 
-# Start command
-CMD ["npm", "start"]
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+CMD ["/app/start.sh"]
 
