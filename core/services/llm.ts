@@ -55,10 +55,21 @@ export async function textToSpeech(text: string, voiceType: VoiceType): Promise<
 // OpenAI
 // ============================================================================
 
+export interface JsonSchema {
+  name: string;
+  schema: {
+    type: 'object';
+    properties: Record<string, unknown>;
+    required?: string[];
+    additionalProperties?: boolean;
+  };
+}
+
 export interface OpenAIOptions {
   systemPrompt?: string;
   temperature?: number;
   maxTokens?: number;
+  jsonSchema?: JsonSchema;
 }
 
 interface ChatMessage {
@@ -69,10 +80,13 @@ interface ChatMessage {
 /**
  * Send a query to OpenAI GPT-4o-mini
  * @param prompt The user prompt to send
- * @param options Optional configuration (systemPrompt, temperature, maxTokens)
- * @returns The assistant's response text
+ * @param options Optional configuration (systemPrompt, temperature, maxTokens, jsonSchema)
+ * @returns The assistant's response text, or parsed JSON if jsonSchema is provided
  */
-export async function askOpenAI(prompt: string, options?: OpenAIOptions): Promise<string> {
+export async function askOpenAI<T = string>(
+  prompt: string, 
+  options?: OpenAIOptions
+): Promise<T> {
   if (!OPENAI_API_KEY) {
     throw new Error('OPENAI_API_KEY is not configured');
   }
@@ -85,18 +99,32 @@ export async function askOpenAI(prompt: string, options?: OpenAIOptions): Promis
 
   messages.push({ role: 'user', content: prompt });
 
+  // Build request body
+  const requestBody: Record<string, unknown> = {
+    model: 'gpt-4o-mini',
+    messages,
+    temperature: options?.temperature ?? 0.7,
+    max_tokens: options?.maxTokens ?? 1000,
+  };
+
+  // Add JSON schema response format if provided
+  if (options?.jsonSchema) {
+    requestBody.response_format = {
+      type: 'json_schema',
+      json_schema: {
+        name: options.jsonSchema.name,
+        schema: options.jsonSchema.schema,
+      },
+    };
+  }
+
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${OPENAI_API_KEY}`,
     },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages,
-      temperature: options?.temperature ?? 0.7,
-      max_tokens: options?.maxTokens ?? 1000,
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {
@@ -105,5 +133,16 @@ export async function askOpenAI(prompt: string, options?: OpenAIOptions): Promis
   }
 
   const data = await response.json();
-  return data.choices[0]?.message?.content || '';
+  const content = data.choices[0]?.message?.content || '';
+
+  // Parse and return JSON if jsonSchema is provided
+  if (options?.jsonSchema) {
+    try {
+      return JSON.parse(content) as T;
+    } catch (parseError) {
+      throw new Error(`Failed to parse OpenAI JSON response: ${parseError}`);
+    }
+  }
+
+  return content as T;
 }

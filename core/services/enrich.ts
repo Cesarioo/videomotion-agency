@@ -1,6 +1,31 @@
 import { getCompany, updateCompany } from './companies.js';
 import { parseUrl } from './parser.js';
-import { askOpenAI } from './llm.js';
+import { askOpenAI, type JsonSchema } from './llm.js';
+
+// JSON Schema for brand enrichment response
+const ENRICHMENT_SCHEMA: JsonSchema = {
+  name: 'brand_enrichment',
+  schema: {
+    type: 'object',
+    properties: {
+      primaryColor: { type: 'string' },
+      secondaryColor: { type: 'string' },
+      valueProp: { type: 'string' },
+      features: { type: 'array', items: { type: 'string' } },
+      targetAudience: { type: 'string' },
+      voiceTone: { type: 'string' },
+    },
+    required: [
+      'primaryColor',
+      'secondaryColor',
+      'valueProp',
+      'features',
+      'targetAudience',
+      'voiceTone',
+    ],
+    additionalProperties: false,
+  },
+};
 
 export interface EnrichmentResult {
   primaryColor: string;
@@ -76,36 +101,15 @@ Based on this data, provide the JSON response with primaryColor, secondaryColor,
 
   console.log(`[Enrich] Sending data to OpenAI...`);
 
-  // Step 4: Get AI analysis
-  const aiResponse = await askOpenAI(prompt, {
+  // Step 4: Get AI analysis with enforced JSON schema
+  const enrichedData = await askOpenAI<Omit<EnrichmentResult, 'logoUrl'>>(prompt, {
     systemPrompt: SYSTEM_PROMPT,
     temperature: 0.3, // Lower temperature for more consistent JSON output
     maxTokens: 1000,
+    jsonSchema: ENRICHMENT_SCHEMA, // Enforce structured JSON output
   });
 
-  console.log(`[Enrich] AI response received, parsing JSON...`);
-
-  // Step 5: Parse the JSON response
-  let enrichedData: EnrichmentResult;
-  try {
-    // Clean the response in case AI added markdown code blocks
-    let cleanResponse = aiResponse.trim();
-    if (cleanResponse.startsWith('```json')) {
-      cleanResponse = cleanResponse.slice(7);
-    }
-    if (cleanResponse.startsWith('```')) {
-      cleanResponse = cleanResponse.slice(3);
-    }
-    if (cleanResponse.endsWith('```')) {
-      cleanResponse = cleanResponse.slice(0, -3);
-    }
-    cleanResponse = cleanResponse.trim();
-
-    enrichedData = JSON.parse(cleanResponse);
-  } catch (parseError) {
-    console.error(`[Enrich] Failed to parse AI response:`, aiResponse);
-    throw new Error(`Failed to parse AI response as JSON: ${parseError}`);
-  }
+  console.log(`[Enrich] AI response received as JSON object`);
 
   // Validate required fields
   if (!enrichedData.primaryColor || !enrichedData.secondaryColor || !enrichedData.valueProp || 
