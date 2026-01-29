@@ -92,7 +92,7 @@ export async function askOpenAI(prompt: string, options?: OpenAIOptions): Promis
       'Authorization': `Bearer ${OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: 'gpt-5-nano',
+      model: 'gpt-4o-mini',
       messages,
       temperature: options?.temperature ?? 0.7,
       max_tokens: options?.maxTokens ?? 1000,
