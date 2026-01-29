@@ -2,60 +2,49 @@ import { config } from 'dotenv';
 
 config();
 
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+const KOKORO_API_URL = process.env.KOKORO_API_URL || 'http://localhost:8880';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
-if (!ELEVENLABS_API_KEY) {
-  console.warn('Missing ELEVENLABS_API_KEY environment variable. Text-to-speech will not work.');
-}
 
 if (!OPENAI_API_KEY) {
   console.warn('Missing OPENAI_API_KEY environment variable. OpenAI queries will not work.');
 }
 
-// Voice IDs for ElevenLabs
+// Voice IDs for Kokoro TTS
 const VOICE_IDS = {
-  male: 'SsJLg1gKCvNqFh6NtSRp',
-  female: 'hpp4J3VqNfWAUOO0d1Us',
+  male: 'am_adam',
+  female: 'af_heart',
 } as const;
 
 export type VoiceType = keyof typeof VOICE_IDS;
 
 /**
- * Generates speech audio from text using ElevenLabs API
+ * Generates speech audio from text using Kokoro TTS API
  * @param text The text to convert to speech
  * @param voiceType The voice type to use ('male' or 'female')
  * @returns Buffer containing the MP3 audio data
  */
 export async function textToSpeech(text: string, voiceType: VoiceType): Promise<Buffer> {
-  if (!ELEVENLABS_API_KEY) {
-    throw new Error('ELEVENLABS_API_KEY is not configured');
-  }
+  const voice = VOICE_IDS[voiceType];
 
-  const voiceId = VOICE_IDS[voiceType];
-
-  const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+  const response = await fetch(`${KOKORO_API_URL}/v1/audio/speech`, {
     method: 'POST',
     headers: {
-      'Accept': 'audio/mpeg',
       'Content-Type': 'application/json',
-      'xi-api-key': ELEVENLABS_API_KEY,
     },
     body: JSON.stringify({
-      text,
-      model_id: 'eleven_multilingual_v2',
-      voice_settings: {
-        stability: 0.8,
-        similarity_boost: 0.8,
-        speed: 1,
-        speaker_boost: true,
-      },
+      model: 'kokoro',
+      input: text,
+      voice: voice,
+      response_format: 'mp3',
+      speed: 1.0,
+      stream: false,
+      lang_code: 'a',
     }),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`ElevenLabs API error (${response.status}): ${errorText}`);
+    throw new Error(`Kokoro TTS API error (${response.status}): ${errorText}`);
   }
 
   const arrayBuffer = await response.arrayBuffer();
@@ -103,7 +92,7 @@ export async function askOpenAI(prompt: string, options?: OpenAIOptions): Promis
       'Authorization': `Bearer ${OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: 'gpt-5-nano',
       messages,
       temperature: options?.temperature ?? 0.7,
       max_tokens: options?.maxTokens ?? 1000,

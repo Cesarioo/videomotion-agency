@@ -47,8 +47,8 @@ jobs:
             echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
             echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
             echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
-            echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
-
+            echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env 
+            echo "KOKORO_API_URL=${{ secrets.KOKORO_API_URL }}" >> .env
 
             # Build and Run Docker Container
             docker build -t chocomotion-api .
