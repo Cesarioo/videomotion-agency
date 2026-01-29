@@ -1,29 +1,40 @@
 FROM node:20-bullseye
 
-# Remotion/Chromium deps
+# Install system dependencies for Remotion (Chromium)
 RUN apt-get update && apt-get install -y \
     chromium \
     libnss3 \
     libfreetype6 \
+    libfreetype6-dev \
     libharfbuzz-dev \
     ca-certificates \
     fonts-freefont-ttf \
-  && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
+# Set environment variable for Remotion to find Chromium
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-ENV PUPPETEER_SKIP_DOWNLOAD=1
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json ./
 
-# Copy everything (including prisma schema) then generate
-COPY . .
+RUN npm install
+
+# Copy Prisma schema and generate client
+COPY prisma.config.ts ./
+COPY core/database ./core/database
+RUN npm run db:migrate:deploy
 RUN npm run db:generate
+
+# Copy source code
+COPY . .
+
+# Build the application
 RUN npm run build
 
+# Expose port
 EXPOSE 3000
 
-# Run migrations at startup (NOT during build), then start app
-CMD ["sh", "-c", "npm run db:migrate:deploy && npm start"]
+# Start command
+CMD ["npm", "start"]
+
