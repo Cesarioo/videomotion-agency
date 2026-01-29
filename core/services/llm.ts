@@ -55,7 +55,7 @@ export async function textToSpeech(text: string, voiceType: VoiceType): Promise<
 // OpenAI
 // ============================================================================
 
-export interface JsonSchema {
+export interface JsonSchema { 
   name: string;
   schema: {
     type: 'object';
