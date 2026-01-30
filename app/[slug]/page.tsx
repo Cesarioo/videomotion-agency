@@ -1,80 +1,13 @@
 import { notFound } from "next/navigation"
 import { Metadata } from "next"
 import { ProspectLanding } from "@/components/prospect-landing"
-
-interface Company {
-  id: string
-  name: string
-  websiteUrl: string
-  employees: number
-  industry: string
-  campaignId: string
-  primaryColor: string
-  secondaryColor: string
-  fontFamily: string
-  logoUrl: string
-  valueProp: string
-  features: string[]
-  targetAudience: string
-  voiceTone: string
-  videoStatus: "none" | "demo_scheduled" | "demo_started" | "demo_finished" | "final_progress" | "final"
-  createdAt: string
-  updatedAt: string
-}
-
-interface DemoVideo {
-  id: string
-  companyId: string
-  videoLink: string
-  createdAt: string
-  updatedAt: string
-}
-
-const API_URL = process.env.API_URL || "api.chocomotion.agency"
-
-async function getCompanyByName(name: string): Promise<Company | null> {
-  try {
-    const res = await fetch(
-      `https://${API_URL}/api/companies/search?name=${encodeURIComponent(name)}`,
-      {
-        headers: {
-          "x-api-key": process.env.SECRET || "",
-        },
-        next: { revalidate: 60 },
-      }
-    )
-
-    if (!res.ok) {
-      return null
-    }
-
-    return res.json()
-  } catch {
-    return null
-  }
-}
-
-async function getDemoVideo(companyId: string): Promise<DemoVideo | null> {
-  try {
-    const res = await fetch(
-      `https://${API_URL}/api/companies/${companyId}/demo-video`,
-      {
-        headers: {
-          "x-api-key": process.env.SECRET || "",
-        },
-        next: { revalidate: 60 },
-      }
-    )
-
-    if (!res.ok) {
-      return null
-    }
-
-    return res.json()
-  } catch {
-    return null
-  }
-}
+import { 
+  getCompanyByName, 
+  getDemoVideo, 
+  getDemoVideoLegacy,
+  type Company,
+  type DemoVideo 
+} from "@/lib/api-server"
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -109,7 +42,11 @@ export default async function ProspectPage({ params }: PageProps) {
     notFound()
   }
 
-  const demoVideo = await getDemoVideo(company.id)
+  // Try the new endpoint first, fall back to legacy
+  let demoVideo = await getDemoVideo(company.id)
+  if (!demoVideo) {
+    demoVideo = await getDemoVideoLegacy(company.id)
+  }
 
   return <ProspectLanding company={company} demoVideo={demoVideo} />
 }
