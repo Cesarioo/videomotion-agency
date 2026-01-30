@@ -1,44 +1,48 @@
-// Server-side API wrapper - uses the same api client with SECRET from env
-import { api } from "./api"
+// Server-side API - calls external API directly (no CORS issues on server)
 import type { Company, DemoVideo } from "./types"
 
-// Re-export types for convenience
+// Re-export types
 export type { Company, DemoVideo }
 
-// Initialize with server SECRET
-function getServerApi() {
-  const secret = process.env.SECRET || ""
-  api.setApiKey(secret)
-  return api
-}
+// API configuration from environment
+const RAW_API_URL = process.env.API_URL || "api.chocomotion.agency"
+const API_URL = RAW_API_URL.startsWith("http") ? RAW_API_URL : `https://${RAW_API_URL}`
+const API_SECRET = process.env.SECRET || ""
 
-// Company API functions
-export async function getCompanyByName(name: string): Promise<Company | null> {
-  const serverApi = getServerApi()
-  const companies = await serverApi.getCompanies({ name })
-  return companies[0] || null
-}
-
-export async function getCompanyById(id: string): Promise<Company | null> {
-  const serverApi = getServerApi()
-  const companies = await serverApi.getCompanies()
-  return companies.find(c => c.id === id) || null
-}
-
-export async function getAllCompanies(): Promise<Company[]> {
-  const serverApi = getServerApi()
-  return serverApi.getCompanies()
-}
-
-// Demo Video API functions
-export async function getDemoVideo(companyId: string): Promise<DemoVideo | null> {
-  const serverApi = getServerApi()
+// Simple fetch wrapper for server-side
+async function serverFetch<T>(endpoint: string): Promise<T | null> {
   try {
-    return await serverApi.getDemoVideo(companyId)
-  } catch {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      headers: {
+        "x-api-key": API_SECRET,
+      },
+      cache: "no-store",
+    })
+
+    if (!response.ok) {
+      console.error(`API error: ${response.status} for ${endpoint}`)
+      return null
+    }
+
+    const text = await response.text()
+    return text ? JSON.parse(text) : null
+  } catch (error) {
+    console.error("Server fetch error:", error)
     return null
   }
 }
 
-// Export the configured api for full access if needed
-export { getServerApi as serverApi }
+// Company API functions
+export async function getCompanyByName(name: string): Promise<Company | null> {
+  const companies = await serverFetch<Company[]>(`/api/companies?name=${encodeURIComponent(name)}`)
+  return companies?.[0] || null
+}
+
+export async function getAllCompanies(): Promise<Company[]> {
+  return await serverFetch<Company[]>("/api/companies") || []
+}
+
+// Demo Video API function
+export async function getDemoVideo(companyId: string): Promise<DemoVideo | null> {
+  return serverFetch<DemoVideo>(`/api/videos/demo/${companyId}`)
+}
