@@ -6,8 +6,8 @@ export async function verifyApiKey(
   request: FastifyRequest,
   reply: FastifyReply
 ): Promise<void> {
-  // Skip auth for Swagger docs and health check
-  if (request.url.startsWith('/docs') || request.url === '/health') {
+  // Skip auth for Swagger docs only
+  if (request.url.startsWith('/docs')) {
     return;
   }
 
