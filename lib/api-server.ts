@@ -5,8 +5,7 @@ import type { Company, DemoVideo } from "./types"
 export type { Company, DemoVideo }
 
 // API configuration from environment
-const RAW_API_URL = process.env.API_URL || "api.chocomotion.agency"
-const API_URL = RAW_API_URL.startsWith("http") ? RAW_API_URL : `https://${RAW_API_URL}`
+const API_URL = process.env.API_URL
 const API_SECRET = process.env.SECRET || ""
 
 // Simple fetch wrapper for server-side
