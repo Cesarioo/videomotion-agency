@@ -2,7 +2,7 @@
 set -e
 
 echo "Running database migrations..."
-npm run db:migrate:deploy
+npm run db:push
 
 echo "Starting API..."
 exec npm start
