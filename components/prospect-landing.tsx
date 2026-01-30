@@ -3,34 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { Play, Check, ExternalLink, Mail, TrendingUp, Users, Zap, BarChart3 } from "lucide-react"
 import Image from "next/image"
-
-interface Company {
-  id: string
-  name: string
-  websiteUrl: string
-  employees: number
-  industry: string
-  campaignId: string
-  primaryColor: string
-  secondaryColor: string
-  fontFamily: string
-  logoUrl: string
-  valueProp: string
-  features: string[]
-  targetAudience: string
-  voiceTone: string
-  videoStatus: "none" | "demo_scheduled" | "demo_started" | "demo_finished" | "final_progress" | "final"
-  createdAt: string
-  updatedAt: string
-}
-
-interface DemoVideo {
-  id: string
-  companyId: string
-  videoLink: string
-  createdAt: string
-  updatedAt: string
-}
+import type { Company, DemoVideo } from "@/lib/types"
 
 interface ProspectLandingProps {
   company: Company

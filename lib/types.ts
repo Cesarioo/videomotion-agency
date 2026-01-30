@@ -20,7 +20,7 @@ export interface Company {
   fontFamily?: string
   logoUrl?: string
   valueProp?: string
-  features?: unknown
+  features?: string[]
   targetAudience?: string
   voiceTone?: string
   videoStatus: VideoStatus
@@ -41,7 +41,7 @@ export interface CompanyInput {
   fontFamily?: string
   logoUrl?: string
   valueProp?: string
-  features?: unknown
+  features?: string[]
   targetAudience?: string
   voiceTone?: string
   videoStatus?: VideoStatus
