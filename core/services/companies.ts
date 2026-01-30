@@ -45,20 +45,36 @@ export async function createCompany(data: {
   });
 }
 
+export async function getAllCompanies(): Promise<Company[]> {
+  return prisma.company.findMany({
+    orderBy: { createdAt: 'desc' },
+  });
+}
+
 export async function getCompany(id: string): Promise<Company | null> {
   return prisma.company.findUnique({
     where: { id },
   });
 }
 
-export async function getCompanyByName(name: string): Promise<Company | null> {
-  return prisma.company.findFirst({
-    where: { 
-      name: {
-        equals: name,
-        mode: 'insensitive', // Case-insensitive search
-      },
-    },
+export async function searchCompanies(filters: Partial<{
+  name: string;
+  websiteUrl: string;
+  industry: string;
+  campaignId: string;
+  videoStatus: VideoStatus;
+}>): Promise<Company[]> {
+  const where: Prisma.CompanyWhereInput = {};
+  
+  if (filters.name) where.name = filters.name;
+  if (filters.websiteUrl) where.websiteUrl = filters.websiteUrl;
+  if (filters.industry) where.industry = filters.industry;
+  if (filters.campaignId) where.campaignId = filters.campaignId;
+  if (filters.videoStatus) where.videoStatus = filters.videoStatus;
+
+  return prisma.company.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
   });
 }
 
@@ -119,9 +135,51 @@ export async function createEmployeeContact(data: {
   });
 }
 
-export async function getEmployeeContact(id: string): Promise<EmployeeContact | null> {
-  return prisma.employeeContact.findUnique({
-    where: { id },
+export async function createManyEmployeeContacts(data: Array<{
+  companyId: string;
+  firstName: string;
+  lastName: string;
+  jobTitle: string;
+  email: string;
+  avatarUrl: string;
+  linkedinUrl: string;
+}>): Promise<EmployeeContact[]> {
+  // Prisma createMany doesn't return the created records, so we use a transaction
+  return prisma.$transaction(
+    data.map((employee) =>
+      prisma.employeeContact.create({
+        data: {
+          companyId: employee.companyId,
+          firstName: employee.firstName,
+          lastName: employee.lastName,
+          jobTitle: employee.jobTitle,
+          email: employee.email,
+          avatarUrl: employee.avatarUrl,
+          linkedinUrl: employee.linkedinUrl,
+        },
+      })
+    )
+  );
+}
+
+export async function searchEmployeeContacts(filters: Partial<{
+  companyId: string;
+  firstName: string;
+  lastName: string;
+  jobTitle: string;
+  email: string;
+}>): Promise<EmployeeContact[]> {
+  const where: Prisma.EmployeeContactWhereInput = {};
+  
+  if (filters.companyId) where.companyId = filters.companyId;
+  if (filters.firstName) where.firstName = filters.firstName;
+  if (filters.lastName) where.lastName = filters.lastName;
+  if (filters.jobTitle) where.jobTitle = filters.jobTitle;
+  if (filters.email) where.email = filters.email;
+
+  return prisma.employeeContact.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
   });
 }
 
