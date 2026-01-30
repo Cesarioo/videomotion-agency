@@ -1,95 +1,185 @@
-// Server-side API client - calls external API directly (no CORS on server)
-// SECRET is only accessed here, never exposed to client
+// Server-side API client - uses the proxy route
+// SECRET is handled by the proxy, never exposed to client
 
-const API_URL = process.env.API_URL || "api.chocomotion.agency"
-const API_SECRET = process.env.SECRET || ""
+import type { 
+  Company, 
+  CompanyInput, 
+  Employee, 
+  EmployeeInput, 
+  DemoVideo, 
+  QueueStatus, 
+  VideoTemplate,
+} from "./types"
 
-// Types
-export interface Company {
-  id: string
-  name: string
-  websiteUrl: string
-  employees: number
-  industry: string
-  campaignId: string
-  primaryColor: string
-  secondaryColor: string
-  fontFamily: string
-  logoUrl: string
-  valueProp: string
-  features: string[]
-  targetAudience: string
-  voiceTone: string
-  videoStatus: "none" | "demo_scheduled" | "demo_started" | "demo_finished" | "final_progress" | "final"
-  createdAt: string
-  updatedAt: string
+// Re-export types for convenience
+export type { Company, DemoVideo }
+
+// Get base URL for internal API calls
+function getBaseUrl(): string {
+  // In production on Vercel
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`
+  }
+  // Custom base URL if set
+  if (process.env.NEXT_PUBLIC_BASE_URL) {
+    return process.env.NEXT_PUBLIC_BASE_URL
+  }
+  // Default to localhost in development
+  return "http://localhost:3000"
 }
 
-export interface DemoVideo {
-  id: string
-  companyId: string
-  videoLink: string
-  views: number
-  lastViewedAt: string | null
-  createdAt: string
-  updatedAt: string
-}
+const API_URL = "/api/proxy"
 
-// Server-side fetch - calls external API directly
-// This is safe because server-side requests don't have CORS restrictions
-export async function serverFetch<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T | null> {
-  const url = `https://${API_URL}${endpoint}`
-  
-  try {
+class ServerApiClient {
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
+    const baseUrl = getBaseUrl()
+    const url = `${baseUrl}${API_URL}${endpoint}`
+    
     const response = await fetch(url, {
       ...options,
       headers: {
-        "x-api-key": API_SECRET,
+        "Content-Type": "application/json",
         ...options.headers,
       },
-      next: { revalidate: 60 },
+      cache: "no-store",
     })
 
     if (!response.ok) {
       console.error(`API error: ${response.status} ${response.statusText} for ${url}`)
-      return null
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
     const text = await response.text()
-    if (!text) return null
+    if (!text) return {} as T
     
     return JSON.parse(text)
-  } catch (error) {
-    console.error("Server fetch error:", error)
-    return null
+  }
+
+  // Health check
+  async checkHealth(): Promise<boolean> {
+    try {
+      await this.request("/health")
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  // Companies
+  async getCompanies(filters?: {
+    name?: string
+    websiteUrl?: string
+    industry?: string
+    campaignId?: string
+    videoStatus?: string
+  }): Promise<Company[]> {
+    const params = new URLSearchParams()
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, value)
+      })
+    }
+    const query = params.toString() ? `?${params.toString()}` : ""
+    return this.request<Company[]>(`/api/companies${query}`)
+  }
+
+  async getCompanyByName(name: string): Promise<Company | null> {
+    const companies = await this.getCompanies({ name })
+    return companies[0] || null
+  }
+
+  async createCompanies(companies: CompanyInput[]): Promise<Company[]> {
+    return this.request<Company[]>("/api/companies", {
+      method: "POST",
+      body: JSON.stringify(companies),
+    })
+  }
+
+  async updateCompany(id: string, data: Partial<CompanyInput>): Promise<Company> {
+    return this.request<Company>(`/api/companies/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteCompany(id: string): Promise<Company> {
+    return this.request<Company>(`/api/companies/${id}`, {
+      method: "DELETE",
+    })
+  }
+
+  // Employees
+  async getEmployees(filters?: {
+    companyId?: string
+    firstName?: string
+    lastName?: string
+    jobTitle?: string
+    email?: string
+  }): Promise<Employee[]> {
+    const params = new URLSearchParams()
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, value)
+      })
+    }
+    const query = params.toString() ? `?${params.toString()}` : ""
+    return this.request<Employee[]>(`/api/employees${query}`)
+  }
+
+  async createEmployees(employees: EmployeeInput[]): Promise<Employee[]> {
+    return this.request<Employee[]>("/api/employees", {
+      method: "POST",
+      body: JSON.stringify(employees),
+    })
+  }
+
+  async updateEmployee(id: string, data: Partial<EmployeeInput>): Promise<Employee> {
+    return this.request<Employee>(`/api/employees/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteEmployee(id: string): Promise<Employee> {
+    return this.request<Employee>(`/api/employees/${id}`, {
+      method: "DELETE",
+    })
+  }
+
+  // Videos
+  async getDemoVideo(companyId: string): Promise<DemoVideo | null> {
+    try {
+      return await this.request<DemoVideo>(`/api/videos/demo/${companyId}`)
+    } catch {
+      return null
+    }
+  }
+
+  async getQueueStatus(): Promise<QueueStatus> {
+    return this.request<QueueStatus>("/api/videos/queues/status")
+  }
+
+  async getVideoTemplates(): Promise<{ templates: VideoTemplate[] }> {
+    return this.request<{ templates: VideoTemplate[] }>("/api/videos/templates")
+  }
+
+  async retryEnrichmentJob(jobId: string): Promise<{ success: boolean; message: string }> {
+    return this.request<{ success: boolean; message: string }>(
+      `/api/videos/queues/enrichment/${jobId}/retry`,
+      { method: "POST" }
+    )
+  }
+
+  async retryVideoJob(jobId: string): Promise<{ success: boolean; message: string }> {
+    return this.request<{ success: boolean; message: string }>(
+      `/api/videos/queues/video/${jobId}/retry`,
+      { method: "POST" }
+    )
   }
 }
 
-// Company API functions
-export async function getCompanyByName(name: string): Promise<Company | null> {
-  // Use the /api/companies endpoint with name filter (per OpenAPI spec)
-  const companies = await serverFetch<Company[]>(`/api/companies?name=${encodeURIComponent(name)}`)
-  return companies?.[0] || null
-}
-
-export async function getCompanyById(id: string): Promise<Company | null> {
-  const companies = await serverFetch<Company[]>(`/api/companies?id=${encodeURIComponent(id)}`)
-  return companies?.[0] || null
-}
-
-export async function getAllCompanies(): Promise<Company[]> {
-  return await serverFetch<Company[]>("/api/companies") || []
-}
-
-// Demo Video API functions
-export async function getDemoVideo(companyId: string): Promise<DemoVideo | null> {
-  return serverFetch<DemoVideo>(`/api/videos/demo/${companyId}`)
-}
-
-// Legacy endpoint support (for backward compatibility with existing API structure)
-export async function getDemoVideoLegacy(companyId: string): Promise<DemoVideo | null> {
-  return serverFetch<DemoVideo>(`/api/companies/${companyId}/demo-video`)
-}
+// Singleton instance for server-side use
+export const serverApi = new ServerApiClient()

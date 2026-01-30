@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const API_URL = process.env.API_URL || "api.chocomotion.agency"
+// Handle API_URL with or without protocol
+const RAW_API_URL = process.env.API_URL || "api.chocomotion.agency"
+const API_URL = RAW_API_URL.startsWith("http") ? RAW_API_URL : `https://${RAW_API_URL}`
+
 // Server-side secret - never exposed to client
 const API_SECRET = process.env.SECRET || ""
 
@@ -23,7 +26,7 @@ export async function GET(
   const { path } = await params
   const apiPath = "/" + path.join("/")
   const searchParams = request.nextUrl.searchParams.toString()
-  const url = `https://${API_URL}${apiPath}${searchParams ? `?${searchParams}` : ""}`
+  const url = `${API_URL}${apiPath}${searchParams ? `?${searchParams}` : ""}`
   
   const apiKey = getApiKey(request)
 
@@ -58,7 +61,7 @@ export async function POST(
 ) {
   const { path } = await params
   const apiPath = "/" + path.join("/")
-  const url = `https://${API_URL}${apiPath}`
+  const url = `${API_URL}${apiPath}`
   
   const apiKey = getApiKey(request)
   const body = await request.text()
@@ -95,7 +98,7 @@ export async function PATCH(
 ) {
   const { path } = await params
   const apiPath = "/" + path.join("/")
-  const url = `https://${API_URL}${apiPath}`
+  const url = `${API_URL}${apiPath}`
   
   const apiKey = getApiKey(request)
   const body = await request.text()
@@ -132,7 +135,7 @@ export async function DELETE(
 ) {
   const { path } = await params
   const apiPath = "/" + path.join("/")
-  const url = `https://${API_URL}${apiPath}`
+  const url = `${API_URL}${apiPath}`
   
   const apiKey = getApiKey(request)
 
