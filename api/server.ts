@@ -56,6 +56,7 @@ await app.register(swaggerUI, {
 });
 
 
-await app.listen({ port: 3000, host: '0.0.0.0' });
+
+await app.listen({ port: 3000, host: '127.0.0.1' });
 console.log('🚀 Server running on http://localhost:3000');
 console.log('📚 Swagger docs available at http://localhost:3000/docs');
