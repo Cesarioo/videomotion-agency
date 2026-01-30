@@ -27,15 +27,11 @@ RUN npm run db:generate
 
 # Copy source code
 COPY . .
+RUN chmod +x /app/start.sh
 
 # Build the application
 RUN npm run build
 
 # Expose port
 EXPOSE 3000
-
-COPY start.sh /app/start.sh
-RUN chmod +x /app/start.sh
-
 CMD ["/app/start.sh"]
-
