@@ -1,36 +1,30 @@
 import { FastifyInstance } from 'fastify';
-import { createVideo, getAvailableTemplates, getTemplateVariables } from '@/core/services/video.js';
-import { uploadBuffer } from '@/core/services/s3.js';
-
-interface CreateVideoBody {
-  type: string;
-  variables?: Record<string, string>;
-}
+import { getAvailableTemplates, getTemplateVariables } from '@/core/services/video.js';
+import {
+  getDemoVideoByCompanyId,
+  incrementDemoVideoViews,
+} from '@/core/services/companies.js';
+import {
+  getTemplatesSchema,
+  getDemoVideoByCompanyIdSchema,
+  getQueueStatusSchema,
+  retryJobSchema,
+} from '@/api/schemas/video.js';
+import { videoQueue } from '@/core/queues/videoQueue.js';
+import { enrichQueue } from '@/core/queues/enrichQueue.js';
 
 export default async function videoRoutes(fastify: FastifyInstance) {
+  // This hook runs for every route defined in THIS plugin
+  fastify.addHook('onRoute', (routeOptions) => {
+    routeOptions.schema = {
+      ...routeOptions.schema,
+      tags: ['Videos']
+    };
+  });
+
   // Get available templates
   fastify.get('/videos/templates', {
-    schema: {
-      description: 'Get available video template types',
-      tags: ['Videos'],
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            templates: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  name: { type: 'string' },
-                  requiredVariables: { type: 'array', items: { type: 'string' } },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    schema: getTemplatesSchema,
   }, async (request, reply) => {
     const templates = getAvailableTemplates();
     const templatesWithVariables = templates.map(name => ({
@@ -41,56 +35,104 @@ export default async function videoRoutes(fastify: FastifyInstance) {
     return reply.send({ templates: templatesWithVariables });
   });
 
-  // Create video from template
-  fastify.post<{ Body: CreateVideoBody }>('/videos', {
-    schema: {
-      description: 'Create a video from a template type with dynamic variables',
-      tags: ['Videos'],
-      body: {
-        type: 'object',
-        required: ['type'],
-        properties: {
-          type: { 
-            type: 'string', 
-            description: 'Template type (e.g., "seo-agency")' 
-          },
-          variables: { 
-            type: 'object',
-            additionalProperties: { type: 'string' },
-            description: 'Variables to replace in scene texts (e.g., { "agency_name": "MyAgency" })',
-          },
-        },
-      },
-      response: {
-        201: {
-          type: 'object',
-          properties: {
-            fileName: { type: 'string' },
-            url: { type: 'string' },
-            key: { type: 'string' },
-          },
-        },
-      },
+  // Get Demo Video by Company ID
+  fastify.get<{ Params: { companyId: string } }>(
+    '/videos/demo/:companyId',
+    {
+      schema: getDemoVideoByCompanyIdSchema,
     },
+    async (request, reply) => {
+      try {
+        const video = await getDemoVideoByCompanyId(request.params.companyId);
+        if (!video) {
+          return reply.code(404).send({ error: 'Demo video not found for this company' });
+        }
+
+        // Increment views and update lastViewedAt
+        await incrementDemoVideoViews(request.params.companyId);
+
+        return reply.send(video);
+      } catch (error) {
+        return reply.code(500).send({ error: 'Failed to get demo video' });
+      }
+    }
+  );
+
+  // ============================================================================
+  // QUEUE STATUS Routes
+  // ============================================================================
+
+  // Get queue status for both enrichment and video generation
+  fastify.get('/videos/queues/status', {
+    schema: getQueueStatusSchema,
   }, async (request, reply) => {
     try {
-      const { type, variables = {} } = request.body;
+      const [enrichCounts, videoCounts] = await Promise.all([
+        enrichQueue.getJobCounts('waiting', 'active', 'completed', 'failed', 'delayed'),
+        videoQueue.getJobCounts('waiting', 'active', 'completed', 'failed', 'delayed'),
+      ]);
 
-      request.log.info({ type, variables }, 'Starting video creation...');
-      
-      const videoResult = await createVideo({ type, variables });
-      
-      request.log.info('Uploading video to R2...');
-      const uploadResult = await uploadBuffer(videoResult.buffer, videoResult.fileName, 'video/mp4');
-      
-      return reply.code(201).send({
-        fileName: videoResult.fileName,
-        url: uploadResult.url,
-        key: uploadResult.key,
+      return reply.send({
+        enrichment: enrichCounts,
+        videoGeneration: videoCounts,
       });
     } catch (error) {
-      request.log.error(error, 'Failed to create video');
-      return reply.code(500).send({ error: 'Failed to create video', details: String(error) });
+      request.log.error(error, 'Failed to get queue status');
+      return reply.code(500).send({ error: 'Failed to get queue status', details: String(error) });
     }
   });
+
+  // ============================================================================
+  // QUEUE RETRY Routes
+  // ============================================================================
+
+  // Retry a failed enrichment job
+  fastify.post<{ Params: { jobId: string } }>(
+    '/videos/queues/enrichment/:jobId/retry',
+    {
+      schema: {
+        ...retryJobSchema,
+        description: 'Retry a failed enrichment (parser) job',
+      },
+    },
+    async (request, reply) => {
+      try {
+        const job = await enrichQueue.getJob(request.params.jobId);
+        if (!job) {
+          return reply.code(404).send({ error: 'Job not found' });
+        }
+
+        await job.retry();
+        return reply.send({ success: true, message: `Job ${request.params.jobId} has been retried` });
+      } catch (error) {
+        request.log.error(error, 'Failed to retry enrichment job');
+        return reply.code(500).send({ error: 'Failed to retry job', details: String(error) });
+      }
+    }
+  );
+
+  // Retry a failed video generation job
+  fastify.post<{ Params: { jobId: string } }>(
+    '/videos/queues/video/:jobId/retry',
+    {
+      schema: {
+        ...retryJobSchema,
+        description: 'Retry a failed video generation job',
+      },
+    },
+    async (request, reply) => {
+      try {
+        const job = await videoQueue.getJob(request.params.jobId);
+        if (!job) {
+          return reply.code(404).send({ error: 'Job not found' });
+        }
+
+        await job.retry();
+        return reply.send({ success: true, message: `Job ${request.params.jobId} has been retried` });
+      } catch (error) {
+        request.log.error(error, 'Failed to retry video job');
+        return reply.code(500).send({ error: 'Failed to retry job', details: String(error) });
+      }
+    }
+  );
 }
