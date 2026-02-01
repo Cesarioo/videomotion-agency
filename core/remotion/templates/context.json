@@ -95,7 +95,7 @@
       }
     },
     {
-      "id": "salesissue",
+      "id": "salesIssue",
       "context": "Marketing campaign launch with disappointing results. Shows a progress bar filling to 100% with confetti celebration, then transitions to show campaign metrics: Impressions (good), Clicks (okay), Sales (zero). Features a dramatic reveal of wasted budget with a flipping text animation from problem to solution.",
       "durationInFrames": 480,
       "durationInSeconds": 16.0,
@@ -109,7 +109,7 @@
       }
     },
     {
-      "id": "salesgoup",
+      "id": "salesGoUp",
       "context": "Sales success celebration visualization. Shows an intro with 'Sales Skyrocketing' message, a rising exponential graph line, spending/revenue counters climbing, floating dollar signs, confetti celebration, and final revenue achievement text.",
       "durationInFrames": 220,
       "durationInSeconds": 7.33,
@@ -127,7 +127,7 @@
     },
     {
       "name": "marketing-agency",
-      "scenes": ["salesissue", "3pillars", "circleFeatures", "planning", "delivery", "salesgoup", "outro"]
+      "scenes": ["salesIssue", "3pillars", "circleFeatures", "planning", "delivery", "salesGoUp", "outro"]
     }
   ],
   "metadata": {
