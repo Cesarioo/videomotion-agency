@@ -25,7 +25,7 @@
       "context": "Three pillars of SEO visualization. Shows three animated cards representing Auditing, Planning and Executing with icons that animate and reveal.",
       "durationInFrames": 130,
       "durationInSeconds": 4.33,
-      "base_text": "At {agency_name} our process is simple: we audit, plan and execute a TAILORED strategy accordingly.",
+      "base_text": "At {agency_name}, we audit plan and execute the best strategy for your business.",
       "defaultProps": {
         "agency_name": "ChocoMotion",
         "pillar1": "Audit",
@@ -38,7 +38,7 @@
       "context": "Circular orbit of SEO features. Four icons (SEO, Technical, Content, Backlinks) orbit around a central ring, then converge to the center and expand to fill the screen with green.",
       "durationInFrames": 185,
       "durationInSeconds": 6.17,
-      "base_text": "Our comprehensive audit covers every angle. From technical issues to content gaps and backlink opportunities.",
+      "base_text": "Our services are broad but tailored for you, from {feature1} to {feature4}.",
       "defaultProps": {
         "feature1": "SEO",
         "feature2": "Technical",
@@ -59,7 +59,7 @@
       "context": "Slack chat transitioning to email delivery. Shows a Slack conversation about project completion, then transitions to an email interface where files are selected via checkboxes and attached as deliverables. Ends with a dramatic send button animation that zooms out.",
       "durationInFrames": 485,
       "durationInSeconds": 16.17,
-      "base_text": "Communication is our special key. We keep you updated every step of the way through Slack, email or whatever platform you use. When deliverables are ready, we immediately send them over or push to production if we have the access. Reports, designs, copy, everything you need, delivered on time so you don't loose yours.",
+      "base_text": "Communication is our special key. We keep you updated every step of the way through Slack, email or whatever platform you use. When deliverables are ready, we immediately send them over or push to production if we have the access. Reports, designs, copy, everything you need, delivered on time!",
       "defaultProps": {}
     },
     {
@@ -99,7 +99,7 @@
       "context": "Marketing campaign launch with disappointing results. Shows a progress bar filling to 100% with confetti celebration, then transitions to show campaign metrics: Impressions (good), Clicks (okay), Sales (zero). Features a dramatic reveal of wasted budget with a flipping text animation from problem to solution.",
       "durationInFrames": 480,
       "durationInSeconds": 16.0,
-      "base_text": "You launched your campaign with high hopes. The impressions came pouring in. Clicks looked promising. But when it came time for sales... nothing. Zero. {amountSpent} spent with absolutely nothing to show for it. Sound familiar? Let's fix that.",
+      "base_text": "It's always the same thing: you launched your campaign with high hopes, and a great budget. The impressions came pouring in. Clicks looked promising. But when it came time for sales... nothing. Zero. Lots of money spent with absolutely nothing to show for it. Sound familiar? Let's fix that.",
       "defaultProps": {
         "campaignName": "Marketing Campaign",
         "impressionsValue": 150000,
