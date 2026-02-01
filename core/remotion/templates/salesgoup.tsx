@@ -564,7 +564,6 @@ const FinalText: React.FC<{ frame: number; fps: number; revenueValue: number }> 
         gap: 20,
       }}
     >
-      <Sparkles size={60} color={GOLD} strokeWidth={2} />
       <div
         style={{
           fontFamily: 'system-ui, -apple-system, sans-serif',
@@ -574,9 +573,7 @@ const FinalText: React.FC<{ frame: number; fps: number; revenueValue: number }> 
           textShadow: '0 4px 30px rgba(0,0,0,0.4)',
         }}
       >
-        <span style={{ color: GOLD }}>{formatCurrency(revenueValue)}</span> in revenue generated
       </div>
-      <Sparkles size={60} color={GOLD} strokeWidth={2} />
     </div>
   );
 };
