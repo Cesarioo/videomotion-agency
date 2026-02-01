@@ -8,7 +8,7 @@ const HEADER = '#0f172a';
 const MUTED = '#64748b';
 const ACCENT = '#22c55e';
 
-const Cursor: React.FC<{ x: number; y: number; scale?: number }> = ({ x, y, scale = 1 }) => (
+const Cursor: React.FC<{ x: number; y: number; scale?: number; opacity?: number }> = ({ x, y, scale = 1, opacity = 1 }) => (
   <div
     style={{
       position: 'absolute',
@@ -17,6 +17,7 @@ const Cursor: React.FC<{ x: number; y: number; scale?: number }> = ({ x, y, scal
       transform: `translate(-6px, -4px) scale(${scale})`,
       pointerEvents: 'none',
       zIndex: 30,
+      opacity,
     }}
   >
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
@@ -107,9 +108,9 @@ const TASKS: TaskRow[] = [
   },
   {
     id: 'task-7',
-    statusLabel: 'Scheduled',
-    statusColor: '#0f766e',
-    statusBg: '#ccfbf1',
+    statusLabel: 'Delivery',
+    statusColor: '#8e44ad',
+    statusBg: '#f3e8ff',
     task: 'Onboarding kickoff call',
     owner: 'Account Team',
     due: 'Mar 1',
@@ -117,13 +118,35 @@ const TASKS: TaskRow[] = [
   },
 ];
 
+const DELIVERED_COLOR = '#8e44ad';
+
+// Timeline for zoom out animation
+const ZOOM_START = 180;
+const ZOOM_END = 220;
+
 export const SecondPillarScene: React.FC = () => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
 
   const panelIn = spring({ frame: frame - 6, fps, config: { damping: 14, stiffness: 110 } });
   const panelScale = interpolate(panelIn, [0, 1], [0.95, 1]);
   const panelOpacity = interpolate(panelIn, [0, 1], [0, 1]);
+
+  // Zoom animation - focus on "Delivery" status badge (task-7, last row)
+  const zoomProgress = interpolate(
+    frame,
+    [ZOOM_START, ZOOM_END],
+    [0, 1],
+    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.inOut(Easing.cubic) }
+  );
+
+  // Panel zooms into the Delivery badge position (bottom-left of panel, row 7)
+  // Transform origin is set to where the Delivery badge is located
+  const zoomScale = interpolate(zoomProgress, [0, 1], [1, 100]);
+  const panelFadeOut = interpolate(zoomProgress, [0.6, 1], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+
+  // Purple background fills the screen as we zoom into the badge
+  const purpleBgOpacity = interpolate(zoomProgress, [0.4, 0.8], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   const task1Start = 30;
   const task2Start = 80;
@@ -159,6 +182,20 @@ export const SecondPillarScene: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ backgroundColor: BG }}>
+      {/* Purple background that fills the screen as we zoom into the Delivery badge */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: DELIVERED_COLOR,
+          opacity: purpleBgOpacity,
+          zIndex: 20,
+        }}
+      />
+
       <div
         style={{
           position: 'absolute',
@@ -170,8 +207,9 @@ export const SecondPillarScene: React.FC = () => {
           borderRadius: 24,
           border: `1px solid ${BORDER}`,
           boxShadow: '0 20px 45px rgba(15, 23, 42, 0.12)',
-          transform: `translate(-50%, -50%) scale(${panelScale})`,
-          opacity: panelOpacity,
+          transform: `translate(-50%, -50%) scale(${panelScale * zoomScale})`,
+          opacity: panelOpacity * panelFadeOut,
+          transformOrigin: '6% 93%', // Bottom-left where the Delivery badge is (last row, status column)
           overflow: 'hidden',
         }}
       >
@@ -306,7 +344,7 @@ export const SecondPillarScene: React.FC = () => {
         })}
       </div>
 
-      <Cursor x={cursorX} y={cursorY} />
+      <Cursor x={cursorX} y={cursorY} opacity={panelFadeOut} />
     </AbsoluteFill>
   );
 };

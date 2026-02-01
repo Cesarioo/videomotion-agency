@@ -1,5 +1,6 @@
 import React from 'react';
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig, Easing } from 'remotion';
+import { Search, Settings, FileText, Link } from 'lucide-react';
 
 const BG_COLOR = '#2c3e50';
 const RING_COLOR = '#e5e7eb';
@@ -24,63 +25,21 @@ type AuditItem = {
   angle: number;
 };
 
+// Wrapper components for Lucide icons to match expected props
 const SearchIcon: React.FC<{ size: number; color: string }> = ({ size, color }) => (
-  <svg width={size} height={size} viewBox="0 0 512 512">
-    <g>
-      <ellipse style={{ fill: '#ffffff' }} cx="158.537" cy="158.536" rx="129.777" ry="129.777" />
-      <path
-        style={{ fill: color }}
-        d="M270.636,46.433c-61.912-61.912-162.291-61.911-224.202,0.001s-61.912,162.291-0.001,224.202c57.054,57.054,146.703,61.394,208.884,13.294l14.18,14.182l28.615-28.613l-14.182-14.182C332.029,193.137,327.69,103.487,270.636,46.433z M250.301,250.302c-50.681,50.681-132.852,50.681-183.534,0c-50.68-50.681-50.68-132.852,0.002-183.533s132.85-50.681,183.531,0C300.982,117.45,300.982,199.621,250.301,250.302z"
-      />
-      <path
-        style={{ fill: color }}
-        d="M305.823,258.865l-46.959,46.958c-2.669,2.67-2.669,6.996,0,9.665l174.339,174.338c12.132,12.133,68.755-44.49,56.623-56.623L315.488,258.865C312.819,256.196,308.493,256.196,305.823,258.865z"
-      />
-      <rect
-        x="409.379"
-        y="442.628"
-        transform="matrix(-0.7071 0.7071 -0.7071 -0.7071 1084.9951 449.4294)"
-        style={{ fill: color }}
-        width="80.077"
-        height="13.594"
-      />
-      <rect
-        x="260.671"
-        y="293.889"
-        transform="matrix(-0.7071 0.7071 -0.7071 -0.7071 725.9606 300.6683)"
-        style={{ fill: color }}
-        width="80.077"
-        height="13.594"
-      />
-    </g>
-  </svg>
+  <Search size={size} color={color} strokeWidth={2.5} />
 );
 
 const GearIcon: React.FC<{ size: number; color: string }> = ({ size, color }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24">
-    <path
-      fill={color}
-      d="M19.43 12.98c.04-.32.07-.64.07-.98 0-.34-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98 0 .33.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"
-    />
-  </svg>
+  <Settings size={size} color={color} strokeWidth={2.5} />
 );
 
 const ContentIcon: React.FC<{ size: number; color: string }> = ({ size, color }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24">
-    <path
-      fill={color}
-      d="M6 2h9l5 5v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm8 1.5V8h4.5L14 3.5zM7 12h10v2H7v-2zm0 4h10v2H7v-2zm0-8h6v2H7V8z"
-    />
-  </svg>
+  <FileText size={size} color={color} strokeWidth={2.5} />
 );
 
 const LinkIcon: React.FC<{ size: number; color: string }> = ({ size, color }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24">
-    <path
-      fill={color}
-      d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
-    />
-  </svg>
+  <Link size={size} color={color} strokeWidth={2.5} />
 );
 
 const DEFAULT_AUDITS: AuditItem[] = [

@@ -270,7 +270,7 @@ export const DeliveryScene: React.FC = () => {
   ];
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#ffffff' }}>
+    <AbsoluteFill style={{ backgroundColor: '#2c3e50' }}>
       {/* Zoom out container */}
       <div
         style={{

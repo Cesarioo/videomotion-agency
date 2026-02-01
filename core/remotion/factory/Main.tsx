@@ -9,6 +9,9 @@ import { DeliveryScene } from '../templates/delivery';
 import { SeoGoesUp } from '../templates/seogoesup';
 import { OutroScene } from '../templates/outro';
 
+import { SalesIssue } from '../templates/salesIssue';
+import { SalesGoUp } from '../templates/salesgoup';
+
 const TEMPLATES = {
   'google-search': GoogleSearch,
   'google-result': GoogleSearchResults,
@@ -18,6 +21,8 @@ const TEMPLATES = {
   'delivery': DeliveryScene,
   'seogoesup': SeoGoesUp,
   'outro': OutroScene,
+  'salesIssue': SalesIssue,
+  'salesGoUp': SalesGoUp,
 } as const;
 
 export interface Scene {

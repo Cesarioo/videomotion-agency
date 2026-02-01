@@ -1,7 +1,7 @@
 import React from 'react';
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig, Easing } from 'remotion';
 
-const BG = '#0f172a';
+const BG = '#2c3e50';
 
 export type OutroSceneProps = {
   logo?: string;
