@@ -641,7 +641,7 @@ const HookSection: React.FC<{
           textShadow: '0 4px 20px rgba(0,0,0,0.3)',
         }}
       >
-        Campaign launched! 🚀
+        Campaign launched!
       </div>
 
       {/* Confetti */}
