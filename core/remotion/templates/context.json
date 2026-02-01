@@ -113,7 +113,7 @@
       "context": "Sales success celebration visualization. Shows an intro with 'Sales Skyrocketing' message, a rising exponential graph line, spending/revenue counters climbing, floating dollar signs, confetti celebration, and final revenue achievement text.",
       "durationInFrames": 220,
       "durationInSeconds": 7.33,
-      "base_text": "And here's what happens when you work with us. Your spending turns into real revenue. {revenueValue} generated and counting.",
+      "base_text": "And here's what happens when you work with us. Your spending turns into real revenue. Money generated and counting!",
       "defaultProps": {
         "spendingValue": 15000,
         "revenueValue": 45000
