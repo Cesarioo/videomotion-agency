@@ -1,4 +1,4 @@
-import { AbsoluteFill, Sequence, staticFile } from 'remotion';
+import { AbsoluteFill, Img, Sequence, staticFile } from 'remotion';
 import { Audio } from '@remotion/media';
 import { GoogleSearch } from '../templates/google-search';
 import { GoogleSearchResults } from '../templates/google-results-fountain';
@@ -81,6 +81,19 @@ export const Main: React.FC<MainProps> = ({ scenes, musicSrc }) => {
           </Sequence>
         );
       })}
+      {/* Watermark overlay */}
+      <Img
+        src={staticFile('chocologo.png')}
+        style={{
+          position: 'absolute',
+          bottom: 20,
+          right: 20,
+          width: 80,
+          height: 'auto',
+          opacity: 0.3,
+          pointerEvents: 'none',
+        }}
+      />
     </AbsoluteFill>
   );
 };
