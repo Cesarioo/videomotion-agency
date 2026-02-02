@@ -86,9 +86,10 @@ export const Main: React.FC<MainProps> = ({ scenes, musicSrc }) => {
         src={staticFile('chocologo.png')}
         style={{
           position: 'absolute',
-          bottom: 50,
-          right: 50,
-          width: 150,
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 500,
           height: 'auto',
           opacity: 0.3,
           pointerEvents: 'none',
