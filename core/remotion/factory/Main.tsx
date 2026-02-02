@@ -1,4 +1,4 @@
-import { AbsoluteFill, Img, Sequence, staticFile } from 'remotion';
+import { AbsoluteFill, Img, Sequence, staticFile, useCurrentFrame, useVideoConfig, interpolate } from 'remotion';
 import { Audio } from '@remotion/media';
 import { GoogleSearch } from '../templates/google-search';
 import { GoogleSearchResults } from '../templates/google-results-fountain';
@@ -37,6 +37,34 @@ export interface MainProps {
 }
 
 const OUTRO_OVERLAP = 25;
+
+const SlidingWatermark: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { durationInFrames, width } = useVideoConfig();
+
+  const translateX = interpolate(
+    frame,
+    [0, durationInFrames],
+    [-500, width],
+    { extrapolateRight: 'clamp' }
+  );
+
+  return (
+    <Img
+      src={staticFile('chocologo.png')}
+      style={{
+        position: 'absolute',
+        top: '50%',
+        left: 0,
+        transform: `translateY(-50%) translateX(${translateX}px)`,
+        width: 500,
+        height: 'auto',
+        opacity: 0.3,
+        pointerEvents: 'none',
+      }}
+    />
+  );
+};
 
 export const Main: React.FC<MainProps> = ({ scenes, musicSrc }) => {
   if (!scenes || scenes.length === 0) {
@@ -82,19 +110,7 @@ export const Main: React.FC<MainProps> = ({ scenes, musicSrc }) => {
         );
       })}
       {/* Watermark overlay */}
-      <Img
-        src={staticFile('chocologo.png')}
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 500,
-          height: 'auto',
-          opacity: 0.3,
-          pointerEvents: 'none',
-        }}
-      />
+      <SlidingWatermark />
     </AbsoluteFill>
   );
 };
