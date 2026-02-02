@@ -53,6 +53,7 @@ import { toast } from "sonner"
 import { CsvImportDialog } from "./csv-import-dialog"
 import { CompanyEditDialog } from "./company-edit-dialog"
 import { EmployeeAddDialog } from "./employee-add-dialog"
+import { SalesNavigatorImportDialog } from "./sales-navigator-import-dialog"
 
 export function AdminDashboard() {
   // Auth state
@@ -74,6 +75,7 @@ export function AdminDashboard() {
   // Dialog states
   const [csvImportOpen, setCsvImportOpen] = useState(false)
   const [csvImportType, setCsvImportType] = useState<"companies" | "employees">("companies")
+  const [salesNavImportOpen, setSalesNavImportOpen] = useState(false)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
   const [addingEmployeeToCompany, setAddingEmployeeToCompany] = useState<Company | null>(null)
 
@@ -512,7 +514,7 @@ export function AdminDashboard() {
 
           {/* Import Tab */}
           <TabsContent value="import" className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-3 gap-4">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -560,6 +562,27 @@ export function AdminDashboard() {
                   </Button>
                 </CardContent>
               </Card>
+
+              <Card className="border-primary/50 bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <UserPlus className="h-5 w-5 text-primary" />
+                    Sales Navigator Import
+                  </CardTitle>
+                  <CardDescription>
+                    Import contacts from Sales Navigator. Companies are matched by website or auto-created.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    onClick={() => setSalesNavImportOpen(true)}
+                    className="w-full"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Import Sales Navigator CSV
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
         </Tabs>
@@ -570,6 +593,12 @@ export function AdminDashboard() {
         open={csvImportOpen}
         onOpenChange={setCsvImportOpen}
         type={csvImportType}
+        onImportComplete={fetchData}
+      />
+
+      <SalesNavigatorImportDialog
+        open={salesNavImportOpen}
+        onOpenChange={setSalesNavImportOpen}
         onImportComplete={fetchData}
       />
 
