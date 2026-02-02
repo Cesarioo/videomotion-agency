@@ -88,6 +88,7 @@ interface ImportResults {
   companiesCreated: number
   companiesExisting: number
   employeesCreated: number
+  employeesSkippedDuplicate: number
   skippedRows: number
   errors: string[]
 }
@@ -327,14 +328,24 @@ export function SalesNavigatorImportDialog({
       companiesCreated: 0,
       companiesExisting: 0,
       employeesCreated: 0,
+      employeesSkippedDuplicate: 0,
       skippedRows: skippedRows.length,
       errors: [...skippedRows.map(s => `Row ${s.row}: ${s.reason}`)],
     }
 
     try {
-      // Step 1: Fetch all existing companies
-      const existingCompanies = await api.getCompanies()
+      // Step 1: Fetch all existing companies and employees
+      setImportStatus("Fetching existing data...")
+      const [existingCompanies, existingEmployees] = await Promise.all([
+        api.getCompanies(),
+        api.getEmployees(),
+      ])
       setImportProgress(10)
+
+      // Create a Set of existing employee emails (normalized to lowercase)
+      const existingEmails = new Set(
+        existingEmployees.map(e => e.email.toLowerCase().trim())
+      )
 
       // Create a map of normalized website -> company
       const existingCompanyMap = new Map<string, Company>()
@@ -399,7 +410,7 @@ export function SalesNavigatorImportDialog({
         }
       }
 
-      // Step 4: Create employees
+      // Step 4: Create employees (skip duplicates by email)
       setImportStatus("Creating employees...")
       const employeesToCreate: EmployeeInput[] = []
       const employeeErrors: string[] = []
@@ -412,6 +423,16 @@ export function SalesNavigatorImportDialog({
           employeeErrors.push(`Row ${contact.rowIndex}: Could not find or create company for ${contact.companyName}`)
           return
         }
+
+        // Check for duplicate email
+        const normalizedEmail = contact.email.toLowerCase().trim()
+        if (existingEmails.has(normalizedEmail)) {
+          results.employeesSkippedDuplicate++
+          return
+        }
+
+        // Add to existingEmails to prevent duplicates within the same import
+        existingEmails.add(normalizedEmail)
 
         employeesToCreate.push({
           companyId,
@@ -663,6 +684,9 @@ export function SalesNavigatorImportDialog({
                   <AlertTitle>Import Complete!</AlertTitle>
                   <AlertDescription>
                     Successfully imported {importResults.employeesCreated} contacts.
+                    {importResults.employeesSkippedDuplicate > 0 && (
+                      <> {importResults.employeesSkippedDuplicate} duplicates were skipped (email already exists).</>
+                    )}
                   </AlertDescription>
                 </Alert>
               ) : (
@@ -671,11 +695,14 @@ export function SalesNavigatorImportDialog({
                   <AlertTitle>Import Completed with Issues</AlertTitle>
                   <AlertDescription>
                     {importResults.employeesCreated} contacts imported, {importResults.errors.length} issues encountered.
+                    {importResults.employeesSkippedDuplicate > 0 && (
+                      <> {importResults.employeesSkippedDuplicate} duplicates skipped.</>
+                    )}
                   </AlertDescription>
                 </Alert>
               )}
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
                 <div className="p-4 rounded-lg bg-muted">
                   <div className="text-2xl font-bold">{importResults.totalContacts}</div>
                   <div className="text-sm text-muted-foreground">Total Contacts</div>
@@ -691,6 +718,10 @@ export function SalesNavigatorImportDialog({
                 <div className="p-4 rounded-lg bg-amber-500/10">
                   <div className="text-2xl font-bold text-amber-600">{importResults.companiesExisting}</div>
                   <div className="text-sm text-muted-foreground">Existing Companies</div>
+                </div>
+                <div className="p-4 rounded-lg bg-purple-500/10">
+                  <div className="text-2xl font-bold text-purple-600">{importResults.employeesSkippedDuplicate}</div>
+                  <div className="text-sm text-muted-foreground">Duplicates Skipped</div>
                 </div>
               </div>
 
