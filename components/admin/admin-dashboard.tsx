@@ -47,7 +47,8 @@ import {
   Building2,
   Users,
   BarChart3,
-  LogOut
+  LogOut,
+  Download
 } from "lucide-react"
 import { toast } from "sonner"
 import { CsvImportDialog } from "./csv-import-dialog"
@@ -234,6 +235,111 @@ export function AdminDashboard() {
   const filteredCompanies = selectedCampaignId
     ? companies.filter(c => c.campaignId === selectedCampaignId)
     : companies
+
+  // Export demo finished companies with employees as CSV
+  const handleExportDemoFinished = () => {
+    // Filter companies with demo_finished status
+    const demoFinishedCompanies = filteredCompanies.filter(
+      c => c.videoStatus === "demo_finished"
+    )
+
+    if (demoFinishedCompanies.length === 0) {
+      toast.error("No companies with demo finished status to export")
+      return
+    }
+
+    // Build CSV rows: one row per employee with company data
+    const csvRows: string[][] = []
+    
+    // Header row
+    const headers = [
+      "Employee First Name",
+      "Employee Last Name",
+      "Employee Job Title",
+      "Employee Email",
+      "Employee LinkedIn URL",
+      "Company Name",
+      "Company Website",
+      "Company Industry",
+      "Company Employees",
+      "Company Campaign ID",
+      "Company Video Status",
+      "Company Created At",
+      "Landing URL"
+    ]
+    csvRows.push(headers)
+
+    // Data rows
+    demoFinishedCompanies.forEach(company => {
+      const companyEmployees = employees.filter(e => e.companyId === company.id)
+      
+      const landingUrl = `https://chocomotion.agency/${encodeURIComponent(company.name)}`
+      
+      if (companyEmployees.length === 0) {
+        // Include company even if no employees (with empty employee fields)
+        csvRows.push([
+          "", // firstName
+          "", // lastName
+          "", // jobTitle
+          "", // email
+          "", // linkedinUrl
+          company.name,
+          company.websiteUrl,
+          company.industry,
+          String(company.employees),
+          company.campaignId,
+          company.videoStatus,
+          new Date(company.createdAt).toLocaleDateString(),
+          landingUrl
+        ])
+      } else {
+        companyEmployees.forEach(emp => {
+          csvRows.push([
+            emp.firstName,
+            emp.lastName,
+            emp.jobTitle,
+            emp.email,
+            emp.linkedinUrl,
+            company.name,
+            company.websiteUrl,
+            company.industry,
+            String(company.employees),
+            company.campaignId,
+            company.videoStatus,
+            new Date(company.createdAt).toLocaleDateString(),
+            landingUrl
+          ])
+        })
+      }
+    })
+
+    // Convert to CSV string with proper escaping
+    const csvContent = csvRows
+      .map(row =>
+        row.map(cell => {
+          // Escape quotes and wrap in quotes if contains comma, quote, or newline
+          const escaped = String(cell).replace(/"/g, '""')
+          return /[,"\n\r]/.test(escaped) ? `"${escaped}"` : escaped
+        }).join(",")
+      )
+      .join("\n")
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    const filename = selectedCampaignId 
+      ? `demo-finished-${selectedCampaignId}-${new Date().toISOString().split("T")[0]}.csv`
+      : `demo-finished-all-campaigns-${new Date().toISOString().split("T")[0]}.csv`
+    link.setAttribute("download", filename)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+
+    toast.success(`Exported ${csvRows.length - 1} rows to CSV`)
+  }
 
   // Auth screen
   if (!isAuthenticated) {
@@ -464,24 +570,35 @@ export function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex gap-2 flex-wrap">
-                    <Button
-                      variant={selectedCampaignId === "" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedCampaignId("")}
-                    >
-                      All Campaigns
-                    </Button>
-                    {campaignIds.map(campaignId => (
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex gap-2 flex-wrap">
                       <Button
-                        key={campaignId}
-                        variant={selectedCampaignId === campaignId ? "default" : "outline"}
+                        variant={selectedCampaignId === "" ? "default" : "outline"}
                         size="sm"
-                        onClick={() => setSelectedCampaignId(campaignId)}
+                        onClick={() => setSelectedCampaignId("")}
                       >
-                        {campaignId}
+                        All Campaigns
                       </Button>
-                    ))}
+                      {campaignIds.map(campaignId => (
+                        <Button
+                          key={campaignId}
+                          variant={selectedCampaignId === campaignId ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSelectedCampaignId(campaignId)}
+                        >
+                          {campaignId}
+                        </Button>
+                      ))}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleExportDemoFinished}
+                      className="shrink-0"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Export Demo Finished
+                    </Button>
                   </div>
 
                   <Separator />
