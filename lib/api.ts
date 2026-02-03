@@ -157,16 +157,9 @@ class ApiClient {
     return this.request<{ templates: VideoTemplate[] }>("/api/videos/templates")
   }
 
-  async retryEnrichmentJob(jobId: string): Promise<{ success: boolean; message: string }> {
-    return this.request<{ success: boolean; message: string }>(
-      `/api/videos/queues/enrichment/${jobId}/retry`,
-      { method: "POST", body: JSON.stringify({}) }
-    )
-  }
-
-  async retryVideoJob(jobId: string): Promise<{ success: boolean; message: string }> {
-    return this.request<{ success: boolean; message: string }>(
-      `/api/videos/queues/video/${jobId}/retry`,
+  async retryEnrichmentByCompanyId(companyId: string): Promise<{ success: boolean; message: string; jobId?: string }> {
+    return this.request<{ success: boolean; message: string; jobId?: string }>(
+      `/api/videos/queues/enrichment/company/${companyId}/retry`,
       { method: "POST", body: JSON.stringify({}) }
     )
   }

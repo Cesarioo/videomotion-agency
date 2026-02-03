@@ -158,12 +158,8 @@ export function AdminDashboard() {
 
   // Company actions
   const handleRetryEnrichment = async (company: Company) => {
-    if (!company.jobId) {
-      toast.error("No enrichment job ID found")
-      return
-    }
     try {
-      await api.retryEnrichmentJob(company.jobId)
+      await api.retryEnrichmentByCompanyId(company.id)
       toast.success("Enrichment job retried successfully")
       fetchData()
     } catch (error) {
@@ -174,12 +170,8 @@ export function AdminDashboard() {
   }
 
   const handleRetryVideo = async (company: Company) => {
-    if (!company.jobId) {
-      toast.error("No video job ID found")
-      return
-    }
     try {
-      await api.retryVideoJob(company.jobId)
+      await api.retryVideoByCompanyId(company.id)
       toast.success("Video job retried successfully")
       fetchData()
     } catch (error) {
