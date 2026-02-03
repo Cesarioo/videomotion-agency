@@ -170,6 +170,13 @@ class ApiClient {
       { method: "POST" }
     )
   }
+
+  async retryVideoByCompanyId(companyId: string): Promise<{ success: boolean; message: string; jobId?: string }> {
+    return this.request<{ success: boolean; message: string; jobId?: string }>(
+      `/api/videos/queues/video/company/${companyId}/retry`,
+      { method: "POST" }
+    )
+  }
 }
 
 // Singleton instance

@@ -238,6 +238,12 @@ export function AdminDashboard() {
 
   // Export demo finished companies with employees as CSV
   const handleExportDemoFinished = () => {
+    // Require a specific campaign to be selected
+    if (!selectedCampaignId) {
+      toast.error("Please select a campaign first")
+      return
+    }
+
     // Filter companies with demo_finished status
     const demoFinishedCompanies = filteredCompanies.filter(
       c => c.videoStatus === "demo_finished"
@@ -329,9 +335,7 @@ export function AdminDashboard() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
-    const filename = selectedCampaignId 
-      ? `demo-finished-${selectedCampaignId}-${new Date().toISOString().split("T")[0]}.csv`
-      : `demo-finished-all-campaigns-${new Date().toISOString().split("T")[0]}.csv`
+    const filename = `demo-finished-${selectedCampaignId}-${new Date().toISOString().split("T")[0]}.csv`
     link.setAttribute("download", filename)
     document.body.appendChild(link)
     link.click()
@@ -339,6 +343,58 @@ export function AdminDashboard() {
     URL.revokeObjectURL(url)
 
     toast.success(`Exported ${csvRows.length - 1} rows to CSV`)
+  }
+
+  // Bulk retry video generation for companies with features but no video
+  const [isRetryingVideos, setIsRetryingVideos] = useState(false)
+  
+  const handleBulkRetryVideos = async () => {
+    // Require a specific campaign to be selected
+    if (!selectedCampaignId) {
+      toast.error("Please select a campaign first")
+      return
+    }
+
+    // Find companies with features but videoStatus === "none"
+    const companiesNeedingRetry = filteredCompanies.filter(
+      c => c.videoStatus === "none" && c.features && c.features.length > 0
+    )
+
+    if (companiesNeedingRetry.length === 0) {
+      toast.error("No companies with features and 'none' video status found")
+      return
+    }
+
+    setIsRetryingVideos(true)
+    let successCount = 0
+    let errorCount = 0
+
+    try {
+      for (const company of companiesNeedingRetry) {
+        try {
+          await api.retryVideoByCompanyId(company.id)
+          successCount++
+        } catch (error) {
+          console.error(`Failed to retry video for ${company.name}:`, error)
+          errorCount++
+        }
+      }
+
+      if (errorCount === 0) {
+        toast.success(`Successfully queued ${successCount} video generation jobs`)
+      } else {
+        toast.warning(`Queued ${successCount} jobs, ${errorCount} failed`)
+      }
+
+      // Refresh data to see updated statuses
+      fetchData()
+    } catch (error) {
+      toast.error("Failed to retry video jobs", {
+        description: error instanceof Error ? error.message : "Unknown error",
+      })
+    } finally {
+      setIsRetryingVideos(false)
+    }
   }
 
   // Auth screen
@@ -590,15 +646,30 @@ export function AdminDashboard() {
                         </Button>
                       ))}
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleExportDemoFinished}
-                      className="shrink-0"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Export Demo Finished
-                    </Button>
+                    <div className="flex gap-2 shrink-0">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleBulkRetryVideos}
+                        disabled={!selectedCampaignId || isRetryingVideos}
+                      >
+                        {isRetryingVideos ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                        )}
+                        Retry Videos
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleExportDemoFinished}
+                        disabled={!selectedCampaignId}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Export Demo Finished
+                      </Button>
+                    </div>
                   </div>
 
                   <Separator />
