@@ -142,4 +142,33 @@ export const retryJobSchema = {
   },
 };
 
+export const retryByCompanySchema = {
+  description: 'Submit a new enrichment and video generation job for a company',
+  tags: ['Videos'],
+  params: {
+    type: 'object',
+    properties: {
+      companyId: { type: 'string', description: 'Company ID to retry job for' },
+    },
+    required: ['companyId'],
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        message: { type: 'string' },
+        jobId: { type: 'string', description: 'New job ID' },
+      },
+    },
+    404: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' },
+      },
+    },
+    500: errorResponseSchema,
+  },
+};
+
 
