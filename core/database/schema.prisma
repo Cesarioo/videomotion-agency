@@ -108,7 +108,7 @@ enum EmailEnrichTaskStatus {
 
 model EmailEnrichTask {
   id           String                @id @default(uuid())
-  domain       String                @map("domain")
+  domain       String                @default("") @map("domain")
   dnsZone      String                @map("dns_zone")
   executedTime DateTime?             @map("executed_time")
   employeeId   String                @map("employee_id")
