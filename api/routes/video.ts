@@ -165,6 +165,7 @@ export default async function videoRoutes(fastify: FastifyInstance) {
           companyId: company.id,
           type: company.industry,
           variables,
+          language: company.preferredLanguage,
         });
 
         request.log.info({ companyId: company.id, jobId: job.id }, 'Video retry job submitted for company');

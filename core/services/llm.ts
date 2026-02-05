@@ -17,13 +17,17 @@ const VOICE_IDS = {
 
 export type VoiceType = keyof typeof VOICE_IDS;
 
+// Supported language codes for Kokoro TTS
+export type LanguageCode = 'a' | 'b' | 'e' | 'f';
+
 /**
  * Generates speech audio from text using Kokoro TTS API
  * @param text The text to convert to speech
  * @param voiceType The voice type to use ('male' or 'female')
+ * @param langCode The language code to use ('a'=American English, 'b'=British English, 'e'=Spanish, 'f'=French)
  * @returns Buffer containing the MP3 audio data
  */
-export async function textToSpeech(text: string, voiceType: VoiceType): Promise<Buffer> {
+export async function textToSpeech(text: string, voiceType: VoiceType, langCode: LanguageCode = 'a'): Promise<Buffer> {
   const voice = VOICE_IDS[voiceType];
 
   const response = await fetch(`${KOKORO_API_URL}/v1/audio/speech`, {
@@ -38,7 +42,7 @@ export async function textToSpeech(text: string, voiceType: VoiceType): Promise<
       response_format: 'mp3',
       speed: 1.0,
       stream: false,
-      lang_code: 'a',
+      lang_code: langCode,
     }),
   });
 

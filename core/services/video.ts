@@ -2,7 +2,7 @@ import { bundle } from '@remotion/bundler';
 import { renderMedia, selectComposition } from '@remotion/renderer';
 import path from 'path';
 import fs from 'fs';
-import { textToSpeech } from './llm.js';
+import { textToSpeech, type LanguageCode } from './llm.js';
 
 // Path to context.json
 const contextPath = path.resolve(process.cwd(), 'core/remotion/templates/context.json');
@@ -19,7 +19,7 @@ interface SceneContext {
   context: string;
   durationInFrames: number;
   durationInSeconds: number;
-  base_text: string;
+  base_text: Record<LanguageCode, string>;
   defaultProps: Record<string, unknown>;
 }
 
@@ -39,6 +39,7 @@ interface VideoContext {
 interface CreateVideoParams {
   type: string;
   variables: Record<string, string>;
+  language?: LanguageCode;
 }
 
 /**
@@ -69,9 +70,10 @@ function extractVariables(text: string): string[] {
  * @param params - The video creation parameters
  * @param params.type - The template type (e.g., 'seo-agency')
  * @param params.variables - Variables to replace in scene texts (e.g., { agency_name: 'MyAgency' })
+ * @param params.language - Language code for TTS audio ('a'=American English, 'b'=British English, 'e'=Spanish, 'f'=French)
  */
 export async function createVideo(params: CreateVideoParams) {
-  const { type, variables } = params;
+  const { type, variables, language = 'a' } = params;
   const videoContext = loadContext();
 
   // Find the template by type
@@ -107,10 +109,12 @@ export async function createVideo(params: CreateVideoParams) {
       ...sceneContext.defaultProps,
       ...variables,
     };
-    const text = replaceVariables(sceneContext.base_text, mergedProps);
-    console.log(`Generating audio for scene '${sceneContext.id}': "${text.substring(0, 50)}..."`);
+    // Get the base text for the selected language, fallback to American English
+    const baseText = sceneContext.base_text[language] || sceneContext.base_text['a'];
+    const text = replaceVariables(baseText, mergedProps);
+    console.log(`Generating audio for scene '${sceneContext.id}' (lang: ${language}): "${text.substring(0, 50)}..."`);
     
-    const audioBuffer = await textToSpeech(text, 'male');
+    const audioBuffer = await textToSpeech(text, 'male', language);
     const audioPath = path.join(publicDir, `${sceneContext.id}.mp3`);
     
     fs.writeFileSync(audioPath, audioBuffer);
@@ -125,12 +129,14 @@ export async function createVideo(params: CreateVideoParams) {
       ...sceneContext.defaultProps,
       ...variables,
     };
+    // Get the base text for the selected language, fallback to American English
+    const baseText = sceneContext.base_text[language] || sceneContext.base_text['a'];
     return {
       template: sceneContext.id,
       durationInFrames: sceneContext.durationInFrames,
       props: {
         ...mergedProps,
-        text: replaceVariables(sceneContext.base_text, mergedProps),
+        text: replaceVariables(baseText, mergedProps),
       },
     };
   });
@@ -245,11 +251,15 @@ export function getTemplateVariables(type: string): string[] {
   }
 
   // Collect all unique variables from base_text of all scenes in the template
+  // Check all language variants for variables
   const variables = new Set<string>();
   for (const sceneId of template.scenes) {
     const scene = videoContext.scenes.find(s => s.id === sceneId);
     if (scene) {
-      extractVariables(scene.base_text).forEach(v => variables.add(v));
+      // Extract variables from all language variants
+      for (const langText of Object.values(scene.base_text)) {
+        extractVariables(langText).forEach(v => variables.add(v));
+      }
     }
   }
 

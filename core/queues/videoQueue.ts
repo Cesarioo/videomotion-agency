@@ -5,6 +5,7 @@ export interface VideoJobData {
   companyId: string;
   type: string;
   variables: Record<string, string>;
+  language?: string;
 }
 
 export const videoQueue = new Queue<VideoJobData>('video-generation', {

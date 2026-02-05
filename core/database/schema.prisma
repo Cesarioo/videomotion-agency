@@ -37,6 +37,7 @@ model Company {
   features         Json              @default("[]") @db.JsonB
   targetAudience   String            @default("") @map("target_audience")
   voiceTone        String            @default("") @map("voice_tone")
+  preferredLanguage String           @default("a") @map("preferred_language")
   videoStatus      VideoStatus       @default(none) @map("video_status")
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")

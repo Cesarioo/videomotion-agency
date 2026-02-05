@@ -55,6 +55,7 @@ async function processEnrichJob(job: Job<EnrichJobData>) {
         companyId,
         type: videoType,
         variables,
+        language: company.preferredLanguage,
       });
       
       console.log(`[EnrichWorker] Video job queued: ${videoJob.id}`);

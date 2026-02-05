@@ -18,6 +18,7 @@ export interface CreateCompanyBody {
   features?: unknown;
   targetAudience?: string;
   voiceTone?: string;
+  preferredLanguage?: string;
   videoStatus?: string;
 }
 
@@ -35,6 +36,7 @@ export interface UpdateCompanyBody {
   features?: unknown;
   targetAudience?: string;
   voiceTone?: string;
+  preferredLanguage?: string;
   videoStatus?: string;
 }
 
@@ -66,6 +68,7 @@ const companyResponseProperties = {
   features: {},
   targetAudience: { type: 'string' },
   voiceTone: { type: 'string' },
+  preferredLanguage: { type: 'string', enum: ['a', 'b', 'e', 'f'], description: 'Preferred language for TTS (a=American English, b=British English, e=Spanish, f=French)' },
   videoStatus: { type: 'string' },
   createdAt: { type: 'string', format: 'date-time' },
   updatedAt: { type: 'string', format: 'date-time' },
@@ -87,6 +90,7 @@ const companyBodyProperties = {
   features: {},
   targetAudience: { type: 'string' },
   voiceTone: { type: 'string' },
+  preferredLanguage: { type: 'string', enum: ['a', 'b', 'e', 'f'], description: 'Preferred language for TTS (a=American English, b=British English, e=Spanish, f=French)' },
   videoStatus: { type: 'string', enum: ['none', 'demo_scheduled', 'demo_started', 'demo_finished', 'final_progress', 'final'] },
 };
 

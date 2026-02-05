@@ -9,7 +9,7 @@ import type { VideoJobData } from '../queues/videoQueue.js';
  * Process a video generation job
  */
 async function processVideoJob(job: Job<VideoJobData>) {
-  const { companyId, type, variables } = job.data;
+  const { companyId, type, variables, language } = job.data;
   
   console.log(`[Worker] Starting video generation for company ${companyId}`);
   console.log(`[Worker] Type: ${type}, Variables:`, variables);
@@ -20,8 +20,8 @@ async function processVideoJob(job: Job<VideoJobData>) {
     console.log(`[Worker] Updated company ${companyId} status to demo_started`);
     
     // Generate the video
-    console.log(`[Worker] Generating video...`);
-    const videoResult = await createVideo({ type, variables });
+    console.log(`[Worker] Generating video with language: ${language || 'a'}...`);
+    const videoResult = await createVideo({ type, variables, language: (language as 'a' | 'b' | 'e' | 'f') || 'a' });
     console.log(`[Worker] Video generated: ${videoResult.fileName}`);
     
     // Upload to R2

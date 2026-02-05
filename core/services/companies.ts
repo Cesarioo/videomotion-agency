@@ -22,6 +22,7 @@ export async function createCompany(data: {
   features?: Prisma.InputJsonValue;
   targetAudience?: string;
   voiceTone?: string;
+  preferredLanguage?: string;
   videoStatus?: VideoStatus;
 }): Promise<Company> {
   return prisma.company.create({
@@ -40,6 +41,7 @@ export async function createCompany(data: {
       ...(data.features !== undefined && { features: data.features }),
       ...(data.targetAudience !== undefined && { targetAudience: data.targetAudience }),
       ...(data.voiceTone !== undefined && { voiceTone: data.voiceTone }),
+      ...(data.preferredLanguage !== undefined && { preferredLanguage: data.preferredLanguage }),
       ...(data.videoStatus !== undefined && { videoStatus: data.videoStatus }),
     },
   });
@@ -94,6 +96,7 @@ export async function updateCompany(
     features: Prisma.InputJsonValue;
     targetAudience: string;
     voiceTone: string;
+    preferredLanguage: string;
     videoStatus: VideoStatus;
   }>
 ): Promise<Company> {
