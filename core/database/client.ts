@@ -12,13 +12,13 @@ const user = process.env.DB_USER;
 const password = process.env.DB_PASSWORD;
 const database = process.env.DB_NAME;
 
-const connectionString = `postgresql://${user}:${password}@${host}:${port}/${database}?schema=clients`;
+// Connection string (Prisma multiSchema handles schema qualification via @@schema directives)
+const connectionString = `postgresql://${user}:${password}@${host}:${port}/${database}`;
 
 // 2. Create a standard Postgres connection pool
 const pool = new Pool({ connectionString });
 
 // 3. Create the Prisma Adapter using that pool
-// 
 const adapter = new PrismaPg(pool);
 
 // 4. Initialize Prisma Client with the adapter

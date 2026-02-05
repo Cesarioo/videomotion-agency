@@ -7,7 +7,7 @@ export interface CreateEmployeeContactBody {
   firstName: string;
   lastName: string;
   jobTitle: string;
-  email: string;
+  email?: string | null;
   avatarUrl: string;
   linkedinUrl: string;
 }
@@ -41,7 +41,7 @@ const employeeContactResponseProperties = {
   firstName: { type: 'string' },
   lastName: { type: 'string' },
   jobTitle: { type: 'string' },
-  email: { type: 'string' },
+  email: { type: 'string', nullable: true },
   avatarUrl: { type: 'string' },
   linkedinUrl: { type: 'string' },
   createdAt: { type: 'string', format: 'date-time' },
@@ -53,7 +53,7 @@ const employeeContactBodyProperties = {
   firstName: { type: 'string' },
   lastName: { type: 'string' },
   jobTitle: { type: 'string' },
-  email: { type: 'string' },
+  email: { type: 'string', nullable: true },
   avatarUrl: { type: 'string' },
   linkedinUrl: { type: 'string' },
 };
@@ -92,13 +92,13 @@ export const getEmployeesSchema = {
 };
 
 export const createEmployeesSchema = {
-  description: 'Create employee contacts',
+  description: 'Create employee contacts. If email is not provided, the system will attempt to enrich it via DNS lookup and SMTP verification.',
   tags: ['Employees'],
   body: {
     type: 'array',
     items: {
       type: 'object',
-      required: ['companyId', 'firstName', 'lastName', 'jobTitle', 'email', 'avatarUrl', 'linkedinUrl'],
+      required: ['companyId', 'firstName', 'lastName', 'jobTitle', 'avatarUrl', 'linkedinUrl'],
       properties: employeeContactBodyProperties,
     },
   },

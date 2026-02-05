@@ -1,6 +1,8 @@
 import prisma from '@/core/database/client.js';
 import type { Company, EmployeeContact, DemoVideo, FinalVideo, Prisma } from '@prisma/client';
 import { VideoStatus } from '@prisma/client';
+import { addEmailEnrichJob } from '../queues/emailEnrichQueue.js';
+import { extractDomainFromUrl } from './enrich.js';
 
 // ============================================================================
 // COMPANY CRUD Operations
@@ -121,21 +123,28 @@ export async function createEmployeeContact(data: {
   firstName: string;
   lastName: string;
   jobTitle: string;
-  email: string;
+  email?: string | null;
   avatarUrl: string;
   linkedinUrl: string;
 }): Promise<EmployeeContact> {
-  return prisma.employeeContact.create({
+  const employee = await prisma.employeeContact.create({
     data: {
       companyId: data.companyId,
       firstName: data.firstName,
       lastName: data.lastName,
       jobTitle: data.jobTitle,
-      email: data.email,
+      email: data.email || null,
       avatarUrl: data.avatarUrl,
       linkedinUrl: data.linkedinUrl,
     },
   });
+
+  // If no email provided, queue email enrichment job
+  if (!data.email) {
+    await queueEmailEnrichmentForEmployee(employee);
+  }
+
+  return employee;
 }
 
 export async function createManyEmployeeContacts(data: Array<{
@@ -143,12 +152,12 @@ export async function createManyEmployeeContacts(data: Array<{
   firstName: string;
   lastName: string;
   jobTitle: string;
-  email: string;
+  email?: string | null;
   avatarUrl: string;
   linkedinUrl: string;
 }>): Promise<EmployeeContact[]> {
   // Prisma createMany doesn't return the created records, so we use a transaction
-  return prisma.$transaction(
+  const employees = await prisma.$transaction(
     data.map((employee) =>
       prisma.employeeContact.create({
         data: {
@@ -156,13 +165,21 @@ export async function createManyEmployeeContacts(data: Array<{
           firstName: employee.firstName,
           lastName: employee.lastName,
           jobTitle: employee.jobTitle,
-          email: employee.email,
+          email: employee.email || null,
           avatarUrl: employee.avatarUrl,
           linkedinUrl: employee.linkedinUrl,
         },
       })
     )
   );
+
+  // Queue email enrichment for employees without email
+  const employeesWithoutEmail = employees.filter(e => !e.email);
+  for (const employee of employeesWithoutEmail) {
+    await queueEmailEnrichmentForEmployee(employee);
+  }
+
+  return employees;
 }
 
 export async function searchEmployeeContacts(filters: Partial<{
@@ -208,6 +225,46 @@ export async function deleteEmployeeContact(id: string): Promise<EmployeeContact
   return prisma.employeeContact.delete({
     where: { id },
   });
+}
+
+/**
+ * Queue email enrichment job for an employee without email
+ * Creates an EmailEnrichTask and adds a job to the queue
+ */
+async function queueEmailEnrichmentForEmployee(employee: EmployeeContact): Promise<void> {
+  // Get the company to extract DNS zone from website URL
+  const company = await prisma.company.findUnique({
+    where: { id: employee.companyId },
+  });
+
+  if (!company?.websiteUrl) {
+    console.log(`[EmailEnrich] Cannot queue enrichment for employee ${employee.id}: no company website URL`);
+    return;
+  }
+
+  const dnsZone = extractDomainFromUrl(company.websiteUrl);
+  
+  console.log(`[EmailEnrich] Queueing email enrichment for employee ${employee.id} (${employee.firstName} ${employee.lastName}@${dnsZone})`);
+
+  // Create EmailEnrichTask record
+  const task = await prisma.emailEnrichTask.create({
+    data: {
+      employeeId: employee.id,
+      dnsZone,
+      status: 'pending',
+    },
+  });
+
+  // Add job to the queue
+  await addEmailEnrichJob({
+    employeeId: employee.id,
+    firstName: employee.firstName,
+    lastName: employee.lastName,
+    dnsZone,
+    taskId: task.id,
+  });
+
+  console.log(`[EmailEnrich] Email enrichment job queued for employee ${employee.id}, task ${task.id}`);
 }
 
 // ============================================================================

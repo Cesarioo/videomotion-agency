@@ -1,3 +1,5 @@
+import { Resolver } from 'dns/promises';
+import { Socket } from 'net';
 import { getCompany, updateCompany } from './companies.js';
 import { parseUrl } from './parser.js';
 import { askOpenAI, type JsonSchema } from './llm.js';
@@ -162,4 +164,289 @@ Based on this data, provide the JSON response with primaryColor, secondaryColor,
     ...enrichedData,
     logoUrl: parsedData.logoUrl,
   };
+}
+
+// ============================================================================
+// EMAIL ENRICHMENT - DNS & SMTP Functions
+// ============================================================================
+
+const UNBOUND_DNS_PORT = 5353;
+const UNBOUND_DNS_HOST = '127.0.0.1';
+
+// SMTP verification options
+export interface SmtpVerifyOptions {
+  heloDomain: string;
+  mailFromAddress: string;
+}
+
+// Socket factory type - allows worker to inject SOCKS5-wrapped socket creation
+export type SocketFactory = (targetHost: string, targetPort: number) => Promise<Socket>;
+
+/**
+ * Lookup MX records for a domain using unbound DNS resolver on port 5353
+ * @param domain The domain to lookup MX records for
+ * @returns Array of MX server hostnames sorted by priority
+ */
+export async function lookupMXRecords(domain: string): Promise<string[]> {
+  console.log(`[EmailEnrich] Looking up MX records for domain: ${domain}`);
+  
+  const resolver = new Resolver();
+  resolver.setServers([`${UNBOUND_DNS_HOST}:${UNBOUND_DNS_PORT}`]);
+  
+  try {
+    const records = await resolver.resolveMx(domain);
+    const sortedRecords = records
+      .sort((a, b) => a.priority - b.priority)
+      .map(r => r.exchange);
+    
+    console.log(`[EmailEnrich] Found ${sortedRecords.length} MX records for ${domain}:`, sortedRecords);
+    return sortedRecords;
+  } catch (error) {
+    console.error(`[EmailEnrich] Failed to lookup MX records for ${domain}:`, error);
+    throw new Error(`MX lookup failed for ${domain}: ${error}`);
+  }
+}
+
+/**
+ * Generate email variants based on first name and last name
+ * @param firstName The first name
+ * @param lastName The last name
+ * @param domain The email domain
+ * @returns Array of possible email addresses
+ */
+export function generateEmailVariants(firstName: string, lastName: string, domain: string): string[] {
+  // Normalize names: lowercase and remove special characters
+  const first = firstName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
+  const last = lastName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
+  
+  if (!first || !last) {
+    console.warn(`[EmailEnrich] Invalid name for email generation: "${firstName}" "${lastName}"`);
+    return [];
+  }
+  
+  const variants = [
+    `${first}.${last}@${domain}`,     // first.last@domain
+    `${first}${last}@${domain}`,       // firstlast@domain
+    `${first}@${domain}`,              // first@domain
+    `${first[0]}.${last}@${domain}`,   // f.last@domain
+    `${first[0]}${last}@${domain}`,    // flast@domain
+  ];
+  
+  console.log(`[EmailEnrich] Generated ${variants.length} email variants for ${firstName} ${lastName}@${domain}`);
+  return variants;
+}
+
+/**
+ * Send an SMTP command and wait for response
+ */
+function sendSmtpCommand(socket: Socket, command: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error(`SMTP command timeout: ${command}`));
+    }, 10000);
+    
+    socket.once('data', (data) => {
+      clearTimeout(timeout);
+      resolve(data.toString());
+    });
+    
+    socket.once('error', (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
+    
+    socket.write(command + '\r\n');
+  });
+}
+
+/**
+ * Wait for initial SMTP greeting
+ */
+function waitForGreeting(socket: Socket): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error('SMTP greeting timeout'));
+    }, 15000);
+    
+    socket.once('data', (data) => {
+      clearTimeout(timeout);
+      resolve(data.toString());
+    });
+    
+    socket.once('error', (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
+  });
+}
+
+/**
+ * Verify if an email exists using SMTP RCPT TO command
+ * @param email The email address to verify
+ * @param mxServer The MX server to connect to
+ * @param socketFactory Function to create socket connection (allows SOCKS5 wrapping from worker)
+ * @param smtpOptions SMTP configuration options (HELO domain, MAIL FROM address)
+ * @returns true if the email appears to be valid, false otherwise
+ */
+export async function verifyEmailViaSMTP(
+  email: string,
+  mxServer: string,
+  socketFactory: SocketFactory,
+  smtpOptions: SmtpVerifyOptions
+): Promise<boolean> {
+  let socket: Socket | null = null;
+  
+  try {
+    console.log(`[EmailEnrich] Verifying email ${email} via SMTP server ${mxServer}`);
+    
+    // Connect using the provided socket factory (may be wrapped in SOCKS5)
+    socket = await socketFactory(mxServer, 25);
+    
+    // Wait for greeting
+    const greeting = await waitForGreeting(socket);
+    console.log(`[EmailEnrich] SMTP Greeting: ${greeting.trim()}`);
+    
+    if (!greeting.startsWith('220')) {
+      console.log(`[EmailEnrich] Invalid SMTP greeting for ${mxServer}`);
+      return false;
+    }
+    
+    // Send HELO with configurable domain
+    const heloResponse = await sendSmtpCommand(socket, `HELO ${smtpOptions.heloDomain}`);
+    console.log(`[EmailEnrich] HELO response: ${heloResponse.trim()}`);
+    
+    if (!heloResponse.startsWith('250')) {
+      console.log(`[EmailEnrich] HELO rejected by ${mxServer}`);
+      return false;
+    }
+    
+    // Send MAIL FROM with configurable address
+    const mailFromResponse = await sendSmtpCommand(socket, `MAIL FROM:<${smtpOptions.mailFromAddress}>`);
+    console.log(`[EmailEnrich] MAIL FROM response: ${mailFromResponse.trim()}`);
+    
+    if (!mailFromResponse.startsWith('250')) {
+      console.log(`[EmailEnrich] MAIL FROM rejected by ${mxServer}`);
+      return false;
+    }
+    
+    // Send RCPT TO - this is the key verification step
+    const rcptToResponse = await sendSmtpCommand(socket, `RCPT TO:<${email}>`);
+    console.log(`[EmailEnrich] RCPT TO response for ${email}: ${rcptToResponse.trim()}`);
+    
+    // 250 = accepted, 251 = forwarded (both mean email exists)
+    // 550, 551, 552, 553 = rejected (email doesn't exist)
+    const isValid = rcptToResponse.startsWith('250') || rcptToResponse.startsWith('251');
+    
+    // Send QUIT
+    try {
+      await sendSmtpCommand(socket, 'QUIT');
+    } catch {
+      // Ignore quit errors
+    }
+    
+    return isValid;
+  } catch (error) {
+    console.error(`[EmailEnrich] SMTP verification error for ${email}:`, error);
+    return false;
+  } finally {
+    if (socket) {
+      socket.destroy();
+    }
+  }
+}
+
+// Options for findEmailForPerson
+export interface FindEmailOptions {
+  socketFactory: SocketFactory;
+  smtpOptions: SmtpVerifyOptions;
+  minDelayMs?: number;
+  maxDelayMs?: number;
+}
+
+/**
+ * Generate a random delay between min and max milliseconds
+ */
+function randomDelay(minMs: number, maxMs: number): Promise<void> {
+  const delay = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+  console.log(`[EmailEnrich] Sleeping for ${delay}ms`);
+  return new Promise(resolve => setTimeout(resolve, delay));
+}
+
+/**
+ * Find a valid email for a person by trying different email variants via SMTP verification
+ * @param firstName First name of the person
+ * @param lastName Last name of the person
+ * @param domain Email domain to check
+ * @param options Configuration options including socket factory and SMTP settings
+ * @returns The first valid email found, or null if none found
+ */
+export async function findEmailForPerson(
+  firstName: string,
+  lastName: string,
+  domain: string,
+  options: FindEmailOptions
+): Promise<string | null> {
+  const { socketFactory, smtpOptions, minDelayMs = 500, maxDelayMs = 2000 } = options;
+  
+  console.log(`[EmailEnrich] Starting email search for ${firstName} ${lastName}@${domain}`);
+  
+  // Step 1: Lookup MX records
+  let mxServers: string[];
+  try {
+    mxServers = await lookupMXRecords(domain);
+  } catch (error) {
+    console.error(`[EmailEnrich] Failed to lookup MX records:`, error);
+    return null;
+  }
+  
+  if (mxServers.length === 0) {
+    console.log(`[EmailEnrich] No MX records found for ${domain}`);
+    return null;
+  }
+  
+  // Step 2: Generate email variants
+  const emailVariants = generateEmailVariants(firstName, lastName, domain);
+  
+  if (emailVariants.length === 0) {
+    console.log(`[EmailEnrich] Could not generate email variants for ${firstName} ${lastName}`);
+    return null;
+  }
+  
+  // Step 3: Try each email variant against the primary MX server
+  const primaryMX = mxServers[0];
+  
+  for (const email of emailVariants) {
+    try {
+      const isValid = await verifyEmailViaSMTP(email, primaryMX, socketFactory, smtpOptions);
+      
+      if (isValid) {
+        console.log(`[EmailEnrich] Found valid email: ${email}`);
+        return email;
+      }
+    } catch (error) {
+      console.error(`[EmailEnrich] Error verifying ${email}:`, error);
+      // Continue to next variant
+    }
+    
+    // Random delay between attempts to avoid rate limiting and detection
+    await randomDelay(minDelayMs, maxDelayMs);
+  }
+  
+  console.log(`[EmailEnrich] No valid email found for ${firstName} ${lastName}@${domain}`);
+  return null;
+}
+
+/**
+ * Extract domain from a URL
+ * @param url The URL to extract domain from
+ * @returns The domain without protocol or path
+ */
+export function extractDomainFromUrl(url: string): string {
+  try {
+    const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
+    return urlObj.hostname.replace(/^www\./, '');
+  } catch {
+    // Fallback: try to extract domain from string
+    return url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+  }
 }

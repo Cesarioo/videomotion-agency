@@ -24,6 +24,7 @@
     "react-dom": "^19.2.3",
     "remotion": "4.0.409",
     "sharp": "^0.34.5",
+    "socks": "^2.8.7",
     "zod": "^3.22.3"
   },
   "devDependencies": {

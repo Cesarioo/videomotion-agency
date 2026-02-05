@@ -49,6 +49,12 @@ jobs:
             echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
             echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env 
             echo "KOKORO_API_URL=${{ secrets.KOKORO_API_URL }}" >> .env
+            echo "SOCKS5_HOST=${{ secrets.SOCKS5_HOST }}" >> .env
+            echo "SOCKS5_PORT=${{ secrets.SOCKS5_PORT }}" >> .env
+            echo "SOCKS5_USER=${{ secrets.SOCKS5_USER }}" >> .env
+            echo "SOCKS5_PASS=${{ secrets.SOCKS5_PASS }}" >> .env
+            echo "SMTP_HELO_DOMAIN=${{ secrets.SMTP_HELO_DOMAIN }}" >> .env
+            echo "SMTP_MAIL_FROM=${{ secrets.SMTP_MAIL_FROM }}" >> .env
 
             # Build and Run Docker Container
             docker build -t chocomotion-api .

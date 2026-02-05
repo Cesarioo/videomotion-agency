@@ -8,6 +8,7 @@ import videoRoutes from "./routes/video.js";
 import { verifyApiKey } from "./hooks/auth.js";
 import { startVideoWorker } from "@/core/workers/videoWorker.js";
 import { startEnrichWorker } from "@/core/workers/enrichWorker.js";
+import { startEmailEnrichWorker } from "@/core/workers/emailEnrichWorker.js";
 
 // Load environment variables
 config();
@@ -15,6 +16,7 @@ config();
 // Start workers
 startEnrichWorker();
 startVideoWorker();
+startEmailEnrichWorker();
 
 const app = Fastify({ logger: false });
 
