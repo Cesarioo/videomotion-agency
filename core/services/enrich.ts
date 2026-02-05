@@ -37,7 +37,18 @@ export interface EnrichmentResult {
   logoUrl: string | null;
 }
 
-const SYSTEM_PROMPT = `You are a brand analyst. Analyze the provided website data and extract key brand information.
+// Language names for prompts
+const LANGUAGE_NAMES: Record<string, string> = {
+  'a': 'American English',
+  'b': 'British English',
+  'e': 'Spanish',
+  'f': 'French',
+};
+
+const getSystemPrompt = (languageCode: string) => {
+  const languageName = LANGUAGE_NAMES[languageCode] || 'American English';
+  
+  return `You are a brand analyst. Analyze the provided website data and extract key brand information.
 
 You MUST respond with ONLY a valid JSON object (no markdown, no explanation, no code blocks) with this exact structure:
 {
@@ -49,12 +60,15 @@ You MUST respond with ONLY a valid JSON object (no markdown, no explanation, no 
   "voiceTone": "Description of the brand voice tone (e.g., professional, friendly, innovative)"
 }
 
+IMPORTANT: The valueProp, features, targetAudience, and voiceTone fields MUST be written in ${languageName}.
+
 Guidelines:
 - For colors: Pick the most prominent brand colors from the provided color data (not white/black unless they're truly the brand colors)
-- For valueProp: Identify what makes this company unique and valuable to customers
-- For features: List 3-5 key services, products, or capabilities
-- For targetAudience: Describe who the company is trying to reach
-- For voiceTone: Analyze the text to determine the communication style`;
+- For valueProp: Identify what makes this company unique and valuable to customers (in ${languageName})
+- For features: List 3-5 key services, products, or capabilities (in ${languageName})
+- For targetAudience: Describe who the company is trying to reach (in ${languageName})
+- For voiceTone: Analyze the text to determine the communication style (in ${languageName})`;
+};
 
 /**
  * Enrich a company's data by parsing their website and using AI to extract brand information
@@ -99,11 +113,15 @@ ${JSON.stringify(Object.entries(parsedData.colors.screenshotPixels).slice(0, 10)
 
 Based on this data, provide the JSON response with primaryColor, secondaryColor, valueProp, features, targetAudience, and voiceTone.`;
 
-  console.log(`[Enrich] Sending data to OpenAI...`);
+  // Get the company's preferred language (default to 'a' for American English)
+  const preferredLanguage = company.preferredLanguage || 'a';
+  const languageName = LANGUAGE_NAMES[preferredLanguage] || 'American English';
+
+  console.log(`[Enrich] Sending data to OpenAI (language: ${languageName})...`);
 
   // Step 4: Get AI analysis with enforced JSON schema
   const enrichedData = await askOpenAI<Omit<EnrichmentResult, 'logoUrl'>>(prompt, {
-    systemPrompt: SYSTEM_PROMPT,
+    systemPrompt: getSystemPrompt(preferredLanguage),
     temperature: 0.3, // Lower temperature for more consistent JSON output
     maxTokens: 1000,
     jsonSchema: ENRICHMENT_SCHEMA, // Enforce structured JSON output
