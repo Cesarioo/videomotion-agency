@@ -2,7 +2,7 @@ import prisma from '@/core/database/client.js';
 import type { Company, EmployeeContact, DemoVideo, FinalVideo, Prisma } from '@prisma/client';
 import { VideoStatus } from '@prisma/client';
 import { addEmailEnrichJob } from '../queues/emailEnrichQueue.js';
-import { extractDomainFromUrl } from './enrich.js';
+import { extractDomainFromUrl, lookupMXRecords } from './enrich.js';
 
 // ============================================================================
 // COMPANY CRUD Operations
@@ -229,10 +229,10 @@ export async function deleteEmployeeContact(id: string): Promise<EmployeeContact
 
 /**
  * Queue email enrichment job for an employee without email
- * Creates an EmailEnrichTask and adds a job to the queue
+ * Does MX lookup first, then creates an EmailEnrichTask and adds a job to the queue
  */
 async function queueEmailEnrichmentForEmployee(employee: EmployeeContact): Promise<void> {
-  // Get the company to extract DNS zone from website URL
+  // Get the company to extract domain from website URL
   const company = await prisma.company.findUnique({
     where: { id: employee.companyId },
   });
@@ -242,14 +242,33 @@ async function queueEmailEnrichmentForEmployee(employee: EmployeeContact): Promi
     return;
   }
 
-  const dnsZone = extractDomainFromUrl(company.websiteUrl);
+  const domain = extractDomainFromUrl(company.websiteUrl);
   
-  console.log(`[EmailEnrich] Queueing email enrichment for employee ${employee.id} (${employee.firstName} ${employee.lastName}@${dnsZone})`);
+  console.log(`[EmailEnrich] Looking up MX records for domain ${domain}`);
+  
+  // Do MX lookup to get the actual mail server (dnsZone)
+  let mxServers: string[];
+  try {
+    mxServers = await lookupMXRecords(domain);
+  } catch (error) {
+    console.error(`[EmailEnrich] Failed to lookup MX records for ${domain}:`, error);
+    return;
+  }
+  
+  if (mxServers.length === 0) {
+    console.log(`[EmailEnrich] No MX records found for ${domain}, cannot queue enrichment`);
+    return;
+  }
+  
+  const dnsZone = mxServers[0]; // Primary MX server
+  
+  console.log(`[EmailEnrich] Queueing email enrichment for employee ${employee.id} (${employee.firstName} ${employee.lastName}@${domain} via MX ${dnsZone})`);
 
   // Create EmailEnrichTask record
   const task = await prisma.emailEnrichTask.create({
     data: {
       employeeId: employee.id,
+      domain,
       dnsZone,
       status: 'pending',
     },
@@ -260,6 +279,7 @@ async function queueEmailEnrichmentForEmployee(employee: EmployeeContact): Promi
     employeeId: employee.id,
     firstName: employee.firstName,
     lastName: employee.lastName,
+    domain,
     dnsZone,
     taskId: task.id,
   });

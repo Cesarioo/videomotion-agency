@@ -281,23 +281,26 @@ function waitForGreeting(socket: Socket): Promise<string> {
 }
 
 /**
- * Verify if an email exists using SMTP RCPT TO command
- * @param email The email address to verify
+ * Verify multiple emails using a single SMTP connection
+ * Keeps the connection open while trying all variants (RCPT TO for each)
+ * @param emails Array of email addresses to verify
  * @param mxServer The MX server to connect to
  * @param socketFactory Function to create socket connection (allows SOCKS5 wrapping from worker)
  * @param smtpOptions SMTP configuration options (HELO domain, MAIL FROM address)
- * @returns true if the email appears to be valid, false otherwise
+ * @param delayBetweenMs Delay between RCPT TO commands (random between min and max)
+ * @returns The first valid email found, or null if none found
  */
-export async function verifyEmailViaSMTP(
-  email: string,
+export async function verifyEmailsViaSMTP(
+  emails: string[],
   mxServer: string,
   socketFactory: SocketFactory,
-  smtpOptions: SmtpVerifyOptions
-): Promise<boolean> {
+  smtpOptions: SmtpVerifyOptions,
+  delayBetweenMs: { min: number; max: number } = { min: 500, max: 2000 }
+): Promise<string | null> {
   let socket: Socket | null = null;
   
   try {
-    console.log(`[EmailEnrich] Verifying email ${email} via SMTP server ${mxServer}`);
+    console.log(`[EmailEnrich] Connecting to SMTP server ${mxServer} to verify ${emails.length} emails`);
     
     // Connect using the provided socket factory (may be wrapped in SOCKS5)
     socket = await socketFactory(mxServer, 25);
@@ -308,16 +311,22 @@ export async function verifyEmailViaSMTP(
     
     if (!greeting.startsWith('220')) {
       console.log(`[EmailEnrich] Invalid SMTP greeting for ${mxServer}`);
-      return false;
+      return null;
     }
     
-    // Send HELO with configurable domain
-    const heloResponse = await sendSmtpCommand(socket, `HELO ${smtpOptions.heloDomain}`);
-    console.log(`[EmailEnrich] HELO response: ${heloResponse.trim()}`);
+    // Send EHLO first (preferred), fall back to HELO
+    let heloResponse = await sendSmtpCommand(socket, `EHLO ${smtpOptions.heloDomain}`);
+    console.log(`[EmailEnrich] EHLO response: ${heloResponse.trim()}`);
     
     if (!heloResponse.startsWith('250')) {
-      console.log(`[EmailEnrich] HELO rejected by ${mxServer}`);
-      return false;
+      // Try HELO as fallback
+      heloResponse = await sendSmtpCommand(socket, `HELO ${smtpOptions.heloDomain}`);
+      console.log(`[EmailEnrich] HELO response: ${heloResponse.trim()}`);
+      
+      if (!heloResponse.startsWith('250')) {
+        console.log(`[EmailEnrich] EHLO/HELO rejected by ${mxServer}`);
+        return null;
+      }
     }
     
     // Send MAIL FROM with configurable address
@@ -326,28 +335,51 @@ export async function verifyEmailViaSMTP(
     
     if (!mailFromResponse.startsWith('250')) {
       console.log(`[EmailEnrich] MAIL FROM rejected by ${mxServer}`);
-      return false;
+      return null;
     }
     
-    // Send RCPT TO - this is the key verification step
-    const rcptToResponse = await sendSmtpCommand(socket, `RCPT TO:<${email}>`);
-    console.log(`[EmailEnrich] RCPT TO response for ${email}: ${rcptToResponse.trim()}`);
+    // Try each email variant with RCPT TO (keeping connection open)
+    for (let i = 0; i < emails.length; i++) {
+      const email = emails[i];
+      
+      // Random delay between attempts (except for first one)
+      if (i > 0) {
+        const delay = Math.floor(Math.random() * (delayBetweenMs.max - delayBetweenMs.min + 1)) + delayBetweenMs.min;
+        console.log(`[EmailEnrich] Sleeping for ${delay}ms before next RCPT TO`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+      
+      // Send RCPT TO - this is the key verification step
+      const rcptToResponse = await sendSmtpCommand(socket, `RCPT TO:<${email}>`);
+      console.log(`[EmailEnrich] RCPT TO response for ${email}: ${rcptToResponse.trim()}`);
+      
+      // 250 = accepted, 251 = forwarded (both mean email exists)
+      if (rcptToResponse.startsWith('250') || rcptToResponse.startsWith('251')) {
+        console.log(`[EmailEnrich] Found valid email: ${email}`);
+        
+        // Send QUIT before returning
+        try {
+          await sendSmtpCommand(socket, 'QUIT');
+        } catch {
+          // Ignore quit errors
+        }
+        
+        return email;
+      }
+    }
     
-    // 250 = accepted, 251 = forwarded (both mean email exists)
-    // 550, 551, 552, 553 = rejected (email doesn't exist)
-    const isValid = rcptToResponse.startsWith('250') || rcptToResponse.startsWith('251');
-    
-    // Send QUIT
+    // No valid email found, send QUIT
+    console.log(`[EmailEnrich] No valid email found after trying ${emails.length} variants`);
     try {
       await sendSmtpCommand(socket, 'QUIT');
     } catch {
       // Ignore quit errors
     }
     
-    return isValid;
+    return null;
   } catch (error) {
-    console.error(`[EmailEnrich] SMTP verification error for ${email}:`, error);
-    return false;
+    console.error(`[EmailEnrich] SMTP verification error:`, error);
+    return null;
   } finally {
     if (socket) {
       socket.destroy();
@@ -364,19 +396,12 @@ export interface FindEmailOptions {
 }
 
 /**
- * Generate a random delay between min and max milliseconds
- */
-function randomDelay(minMs: number, maxMs: number): Promise<void> {
-  const delay = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
-  console.log(`[EmailEnrich] Sleeping for ${delay}ms`);
-  return new Promise(resolve => setTimeout(resolve, delay));
-}
-
-/**
  * Find a valid email for a person by trying different email variants via SMTP verification
+ * Uses a single SMTP connection to try all variants (keeps connection open)
  * @param firstName First name of the person
  * @param lastName Last name of the person
  * @param domain Email domain to check
+ * @param mxServer The MX server to connect to (pre-resolved)
  * @param options Configuration options including socket factory and SMTP settings
  * @returns The first valid email found, or null if none found
  */
@@ -384,27 +409,14 @@ export async function findEmailForPerson(
   firstName: string,
   lastName: string,
   domain: string,
+  mxServer: string,
   options: FindEmailOptions
 ): Promise<string | null> {
   const { socketFactory, smtpOptions, minDelayMs = 500, maxDelayMs = 2000 } = options;
   
-  console.log(`[EmailEnrich] Starting email search for ${firstName} ${lastName}@${domain}`);
+  console.log(`[EmailEnrich] Starting email search for ${firstName} ${lastName}@${domain} via MX ${mxServer}`);
   
-  // Step 1: Lookup MX records
-  let mxServers: string[];
-  try {
-    mxServers = await lookupMXRecords(domain);
-  } catch (error) {
-    console.error(`[EmailEnrich] Failed to lookup MX records:`, error);
-    return null;
-  }
-  
-  if (mxServers.length === 0) {
-    console.log(`[EmailEnrich] No MX records found for ${domain}`);
-    return null;
-  }
-  
-  // Step 2: Generate email variants
+  // Generate email variants
   const emailVariants = generateEmailVariants(firstName, lastName, domain);
   
   if (emailVariants.length === 0) {
@@ -412,28 +424,16 @@ export async function findEmailForPerson(
     return null;
   }
   
-  // Step 3: Try each email variant against the primary MX server
-  const primaryMX = mxServers[0];
+  // Try all email variants using a single SMTP connection
+  const validEmail = await verifyEmailsViaSMTP(
+    emailVariants,
+    mxServer,
+    socketFactory,
+    smtpOptions,
+    { min: minDelayMs, max: maxDelayMs }
+  );
   
-  for (const email of emailVariants) {
-    try {
-      const isValid = await verifyEmailViaSMTP(email, primaryMX, socketFactory, smtpOptions);
-      
-      if (isValid) {
-        console.log(`[EmailEnrich] Found valid email: ${email}`);
-        return email;
-      }
-    } catch (error) {
-      console.error(`[EmailEnrich] Error verifying ${email}:`, error);
-      // Continue to next variant
-    }
-    
-    // Random delay between attempts to avoid rate limiting and detection
-    await randomDelay(minDelayMs, maxDelayMs);
-  }
-  
-  console.log(`[EmailEnrich] No valid email found for ${firstName} ${lastName}@${domain}`);
-  return null;
+  return validEmail;
 }
 
 /**

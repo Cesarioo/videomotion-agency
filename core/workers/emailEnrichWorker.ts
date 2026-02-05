@@ -5,7 +5,7 @@ import { createRedisConnection } from '../services/redis.js';
 import { findEmailForPerson, type SocketFactory, type SmtpVerifyOptions } from '../services/enrich.js';
 import { updateEmployeeContact } from '../services/companies.js';
 import prisma from '@/core/database/client.js';
-import type { EmailEnrichJobData } from '../queues/emailEnrichQueue.js';
+import { emailEnrichQueue, type EmailEnrichJobData } from '../queues/emailEnrichQueue.js';
 
 // SOCKS5 proxy configuration from environment variables
 const SOCKS5_HOST = process.env.SOCKS5_HOST || '';
@@ -16,6 +16,9 @@ const SOCKS5_PASS = process.env.SOCKS5_PASS;
 // SMTP verification configuration from environment variables
 const SMTP_HELO_DOMAIN = process.env.SMTP_HELO_DOMAIN || 'mailer.ai-car-pricer.com';
 const SMTP_MAIL_FROM = process.env.SMTP_MAIL_FROM || `verifier@${SMTP_HELO_DOMAIN}`;
+
+// Rate limiting configuration
+const MAX_CONNECTIONS_PER_HOUR = 20;
 
 /**
  * Create a socket connection through SOCKS5 proxy
@@ -68,13 +71,62 @@ async function updateTaskStatus(
 }
 
 /**
+ * Check rate limit for a DNS zone (MX server)
+ * Returns the count of tasks created in the last hour for this dnsZone
+ */
+async function getRecentTaskCountForDnsZone(dnsZone: string): Promise<number> {
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  
+  const count = await prisma.emailEnrichTask.count({
+    where: {
+      dnsZone,
+      createdAt: {
+        gte: oneHourAgo,
+      },
+    },
+  });
+  
+  return count;
+}
+
+/**
+ * Re-queue a job by pushing it back to the queue with a delay
+ */
+async function requeueJob(jobData: EmailEnrichJobData, delayMs: number = 60000): Promise<void> {
+  console.log(`[EmailEnrichWorker] Re-queuing job for employee ${jobData.employeeId} with ${delayMs}ms delay`);
+  
+  await emailEnrichQueue.add('enrich-email', jobData, {
+    jobId: `email-enrich-${jobData.employeeId}-${Date.now()}`,
+    delay: delayMs,
+  });
+}
+
+/**
  * Process an email enrichment job
  */
 async function processEmailEnrichJob(job: Job<EmailEnrichJobData>) {
-  const { employeeId, firstName, lastName, dnsZone, taskId } = job.data;
+  const { employeeId, firstName, lastName, domain, dnsZone, taskId } = job.data;
   
   console.log(`[EmailEnrichWorker] Starting email enrichment for employee ${employeeId}`);
-  console.log(`[EmailEnrichWorker] Name: ${firstName} ${lastName}, DNS Zone: ${dnsZone}`);
+  console.log(`[EmailEnrichWorker] Name: ${firstName} ${lastName}, Domain: ${domain}, MX Server: ${dnsZone}`);
+  
+  // Check rate limit for this DNS zone (MX server)
+  const recentCount = await getRecentTaskCountForDnsZone(dnsZone);
+  console.log(`[EmailEnrichWorker] Recent tasks for ${dnsZone}: ${recentCount}/${MAX_CONNECTIONS_PER_HOUR}`);
+  
+  if (recentCount >= MAX_CONNECTIONS_PER_HOUR) {
+    console.log(`[EmailEnrichWorker] Rate limit exceeded for ${dnsZone}, re-queuing job`);
+    
+    // Re-queue the job with a delay (wait 5 minutes before retrying)
+    await requeueJob(job.data, 5 * 60 * 1000);
+    
+    return {
+      success: false,
+      rateLimited: true,
+      dnsZone,
+      employeeId,
+    };
+  }
   
   // SMTP options from environment variables
   const smtpOptions: SmtpVerifyOptions = {
@@ -86,8 +138,8 @@ async function processEmailEnrichJob(job: Job<EmailEnrichJobData>) {
     // Update task status to processing
     await updateTaskStatus(taskId, 'processing');
     
-    // Find email using DNS lookup and SMTP verification (with SOCKS5 proxy)
-    const email = await findEmailForPerson(firstName, lastName, dnsZone, {
+    // Find email using single SMTP connection to verify all variants
+    const email = await findEmailForPerson(firstName, lastName, domain, dnsZone, {
       socketFactory: createProxiedSocket,
       smtpOptions,
     });
@@ -111,11 +163,11 @@ async function processEmailEnrichJob(job: Job<EmailEnrichJobData>) {
     } else {
       console.log(`[EmailEnrichWorker] No email found for employee ${employeeId}`);
       
-      // Update task status to completed (no email found, but task finished)
-      await updateTaskStatus(taskId, 'completed', executedTime);
+      // ONE TASK = 1 connection - if not found, mark as FAILED
+      await updateTaskStatus(taskId, 'failed', executedTime);
       
       return {
-        success: true,
+        success: false,
         email: null,
         employeeId,
       };

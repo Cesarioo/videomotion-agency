@@ -108,6 +108,7 @@ enum EmailEnrichTaskStatus {
 
 model EmailEnrichTask {
   id           String                @id @default(uuid())
+  domain       String                @map("domain")
   dnsZone      String                @map("dns_zone")
   executedTime DateTime?             @map("executed_time")
   employeeId   String                @map("employee_id")
@@ -116,6 +117,7 @@ model EmailEnrichTask {
   updatedAt    DateTime              @updatedAt @map("updated_at")
   employee     EmployeeContact       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
+  @@index([dnsZone, createdAt])
   @@map("email_enrich_tasks")
   @@schema("workers")
 }

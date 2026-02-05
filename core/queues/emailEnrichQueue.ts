@@ -5,6 +5,7 @@ export interface EmailEnrichJobData {
   employeeId: string;
   firstName: string;
   lastName: string;
+  domain: string;
   dnsZone: string;
   taskId: string;
 }
