@@ -2,7 +2,9 @@ name: Deploy API
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
+    paths:
+      - "apps/api/**"
   workflow_dispatch:
 
 jobs:
@@ -18,20 +20,19 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "."
-          target: "/opt/chocomotion-api"
+          source: "apps/api"
+          target: "/opt/chocomotion"
           rm: false
 
-      - name: Execute remote ssh commands
+      - name: Build and deploy
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /opt/chocomotion-api
-            
-            # Create .env file from secrets (optional but recommended)
+            cd /opt/chocomotion/apps/api
+
             echo "DB_HOST=${{ secrets.DB_HOST }}" > .env
             echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
             echo "DB_USER=${{ secrets.DB_USER }}" >> .env
@@ -47,7 +48,7 @@ jobs:
             echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
             echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
             echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
-            echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env 
+            echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
             echo "KOKORO_API_URL=${{ secrets.KOKORO_API_URL }}" >> .env
             echo "SOCKS5_HOST=${{ secrets.SOCKS5_HOST }}" >> .env
             echo "SOCKS5_PORT=${{ secrets.SOCKS5_PORT }}" >> .env
@@ -56,19 +57,14 @@ jobs:
             echo "SMTP_HELO_DOMAIN=${{ secrets.SMTP_HELO_DOMAIN }}" >> .env
             echo "SMTP_MAIL_FROM=${{ secrets.SMTP_MAIL_FROM }}" >> .env
 
-            # Build and Run Docker Container
             docker build -t chocomotion-api .
-            
-            # Stop and remove existing container if it exists
+
             docker stop chocomotion-api || true
             docker rm chocomotion-api || true
-            
-            # Run new container with host networking
-            # This allows the container to access services on localhost (like Kokoro TTS)
+
             docker run -d \
               --name chocomotion-api \
               --restart unless-stopped \
               --network="host" \
               --env-file .env \
               chocomotion-api
-

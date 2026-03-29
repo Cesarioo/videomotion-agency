@@ -1,8 +1,10 @@
-name: Deploy
+name: Deploy Web
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
+    paths:
+      - "apps/web/**"
   workflow_dispatch:
 
 jobs:
@@ -18,35 +20,30 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "."
-          target: "/opt/chocomotion-webapp"
+          source: "apps/web"
+          target: "/opt/chocomotion"
           rm: false
 
-      - name: Execute remote ssh commands
+      - name: Build and deploy
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /opt/chocomotion-webapp
-            
-            # Create .env file from secrets (optional but recommended)
+            cd /opt/chocomotion/apps/web
+
             echo "API_URL=${{ secrets.API_URL }}" > .env
             echo "SECRET=${{ secrets.SECRET }}" >> .env
 
-            # Build and Run Docker Container
-            docker build -t chocomotion-webapp .
-            
-            # Stop and remove existing container if it exists
-            docker stop chocomotion-webapp || true
-            docker rm chocomotion-webapp || true
-            
-            # Run new container with host networking
-            # This allows the container to access services on localhost (like Kokoro TTS)
+            docker build -t chocomotion-web .
+
+            docker stop chocomotion-web || true
+            docker rm chocomotion-web || true
+
             docker run -d \
-              --name chocomotion-webapp \
+              --name chocomotion-web \
               --restart unless-stopped \
               --network="host" \
               --env-file .env \
-              chocomotion-webapp
+              chocomotion-web

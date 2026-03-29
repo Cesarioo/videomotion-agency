@@ -1,0 +1,20 @@
+services:
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: chocomotion-web
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - ./apps/web/.env
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: chocomotion-api
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - ./apps/api/.env
