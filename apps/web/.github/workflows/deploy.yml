@@ -1,0 +1,52 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy files via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "."
+          target: "/opt/chocomotion-webapp"
+          rm: false
+
+      - name: Execute remote ssh commands
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /opt/chocomotion-webapp
+            
+            # Create .env file from secrets (optional but recommended)
+            echo "API_URL=${{ secrets.API_URL }}" > .env
+            echo "SECRET=${{ secrets.SECRET }}" >> .env
+
+            # Build and Run Docker Container
+            docker build -t chocomotion-webapp .
+            
+            # Stop and remove existing container if it exists
+            docker stop chocomotion-webapp || true
+            docker rm chocomotion-webapp || true
+            
+            # Run new container with host networking
+            # This allows the container to access services on localhost (like Kokoro TTS)
+            docker run -d \
+              --name chocomotion-webapp \
+              --restart unless-stopped \
+              --network="host" \
+              --env-file .env \
+              chocomotion-webapp
