@@ -1,0 +1,66 @@
+{
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.975.0",
+    "@fastify/swagger": "^9.6.1",
+    "@fastify/swagger-ui": "^5.2.4",
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
+    "@remotion/bundler": "4.0.409",
+    "@remotion/cli": "4.0.409",
+    "@remotion/google-fonts": "4.0.409",
+    "@remotion/media": "4.0.409",
+    "@remotion/renderer": "4.0.409",
+    "@remotion/transitions": "4.0.409",
+    "bullmq": "^5.67.1",
+    "cheerio": "^1.2.0",
+    "fastify": "^5.7.1",
+    "ioredis": "^5.9.2",
+    "lucide-react": "^0.563.0",
+    "pg": "^8.17.2",
+    "prisma": "^7.3.0",
+    "puppeteer": "^24.36.0",
+    "react": "^19.2.3",
+    "react-confetti": "^6.4.0",
+    "react-dom": "^19.2.3",
+    "remotion": "4.0.409",
+    "sharp": "^0.34.5",
+    "socks": "^2.8.7",
+    "zod": "^3.22.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "@types/pg": "^8.16.0",
+    "dotenv": "^17.2.3",
+    "tsc-alias": "^1.8.16",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "name": "chocomotion-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsx watch api/server.ts",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:push": "prisma db push",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "build": "tsc && tsc-alias",
+    "start": "node dist/api/server.js",
+    "studio": "remotion studio"
+  },
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cesarioo/chocomotion-backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Cesarioo/chocomotion-backend/issues"
+  },
+  "homepage": "https://github.com/Cesarioo/chocomotion-backend#readme",
+  "description": ""
+}

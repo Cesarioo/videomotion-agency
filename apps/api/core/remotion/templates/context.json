@@ -1,0 +1,191 @@
+{
+  "scenes": [
+    {
+      "id": "google-search",
+      "context": "Google search page with animated typing. Shows a user typing a search query into Google's search bar with a blinking cursor, Google logo, and search buttons.",
+      "durationInFrames": 110,
+      "durationInSeconds": 3.67,
+      "base_text": {
+        "a": "What if you could reach millions of potential clients from day one?",
+        "b": "What if you could reach millions of potential clients from day one?",
+        "e": "¿Y si pudieras llegar a millones de clientes potenciales desde el primer día?",
+        "f": "Et si vous pouviez atteindre des millions de clients potentiels dès le premier jour ?"
+      },
+      "defaultProps": {
+        "text": "Best SEO agency near me"
+      }
+    },
+    {
+      "id": "google-result",
+      "context": "Google search results page scrolling animation. Rapidly scrolls through many search results before stopping at a highlighted result, simulating finding the perfect answer.",
+      "durationInFrames": 260,
+      "durationInSeconds": 8.67,
+      "base_text": {
+        "a": "Of course, there is a catch... With thousands of results out there... standing out is harder than ever. But what if your business could be THE ONE people find FIRST?",
+        "b": "Of course, there is a catch... With thousands of results out there... standing out is harder than ever. But what if your business could be THE ONE people find FIRST?",
+        "e": "Por supuesto, hay un problema... Con miles de resultados por ahí... destacar es más difícil que nunca. Pero, ¿y si tu negocio pudiera ser EL QUE la gente encuentre PRIMERO?",
+        "f": "Bien sûr, il y a un hic... Avec des milliers de résultats disponibles... se démarquer est plus difficile que jamais. Mais et si votre entreprise pouvait être CELLE que les gens trouvent EN PREMIER ?"
+      },
+      "defaultProps": {
+        "keyword": "Best SEO agency near me"
+      }
+    },
+    {
+      "id": "3pillars",
+      "context": "Three pillars of SEO visualization. Shows three animated cards representing Auditing, Planning and Executing with icons that animate and reveal.",
+      "durationInFrames": 130,
+      "durationInSeconds": 4.33,
+      "base_text": {
+        "a": "At {agency_name}, we audit, plan, and execute the best strategy for your business.",
+        "b": "At {agency_name}, we audit, plan, and execute the best strategy for your business.",
+        "e": "En {agency_name}, auditamos, planificamos y ejecutamos la mejor estrategia para tu negocio.",
+        "f": "Chez {agency_name}, nous auditons, planifions et exécutons la meilleure stratégie pour votre entreprise."
+      },
+      "defaultProps": {
+        "agency_name": "ChocoMotion",
+        "pillar1": "Audit",
+        "pillar2": "Planning",
+        "pillar3": "Delivery"
+      }
+    },
+    {
+      "id": "circleFeatures",
+      "context": "Circular orbit of SEO features. Four icons (SEO, Technical, Content, Backlinks) orbit around a central ring, then converge to the center and expand to fill the screen with green.",
+      "durationInFrames": 185,
+      "durationInSeconds": 6.17,
+      "base_text": {
+        "a": "Our services are broad but tailored for you, from {feature1} to {feature4}.",
+        "b": "Our services are broad but tailored for you, from {feature1} to {feature4}.",
+        "e": "Nuestros servicios son amplios pero personalizados para ti, desde {feature1} hasta {feature4}.",
+        "f": "Nos services sont variés mais adaptés à vos besoins, de {feature1} à {feature4}."
+      },
+      "defaultProps": {
+        "feature1": "SEO",
+        "feature2": "Technical",
+        "feature3": "Content",
+        "feature4": "Backlinks"
+      }
+    },
+    {
+      "id": "planning",
+      "context": "Project management dashboard with task list. Shows a planning interface with tasks being typed and added, including status labels, owners, and due dates. Cursor interacts with the interface.",
+      "durationInFrames": 250,
+      "durationInSeconds": 8.33,
+      "base_text": {
+        "a": "We create a custom action plan for your business based on the audit. Every task is assigned, scheduled, and tracked so nothing falls through the cracks.",
+        "b": "We create a custom action plan for your business based on the audit. Every task is assigned, scheduled, and tracked so nothing falls through the cracks.",
+        "e": "Creamos un plan de acción personalizado para tu negocio basado en la auditoría. Cada tarea se asigna, programa y rastrea para que nada se escape.",
+        "f": "Nous créons un plan d'action personnalisé pour votre entreprise basé sur l'audit. Chaque tâche est assignée, planifiée et suivie pour que rien ne passe entre les mailles du filet."
+      },
+      "defaultProps": {}
+    },
+    {
+      "id": "delivery",
+      "context": "Slack chat transitioning to email delivery. Shows a Slack conversation about project completion, then transitions to an email interface where files are selected via checkboxes and attached as deliverables. Ends with a dramatic send button animation that zooms out.",
+      "durationInFrames": 485,
+      "durationInSeconds": 16.17,
+      "base_text": {
+        "a": "Communication is our special key. We keep you updated every step of the way through Slack, email or whatever platform you use. When deliverables are ready, we immediately send them over or push to production if we have the access. Reports, designs, copy, everything you need, delivered on time!",
+        "b": "Communication is our special key. We keep you updated every step of the way through Slack, email or whatever platform you use. When deliverables are ready, we immediately send them over or push to production if we have the access. Reports, designs, copy, everything you need, delivered on time!",
+        "e": "La comunicación es nuestra clave especial. Te mantenemos informado en cada paso a través de Slack, correo electrónico o la plataforma que uses. Cuando los entregables están listos, los enviamos inmediatamente o los publicamos en producción si tenemos acceso. Informes, diseños, textos, todo lo que necesitas, ¡entregado a tiempo!",
+        "f": "La communication est notre atout majeur. Nous vous tenons informé à chaque étape via Slack, email ou la plateforme de votre choix. Quand les livrables sont prêts, nous les envoyons immédiatement ou les mettons en production si nous avons les accès. Rapports, designs, contenus, tout ce dont vous avez besoin, livré à temps !"
+      },
+      "defaultProps": {}
+    },
+    {
+      "id": "seogoesup",
+      "context": "SEO ranking improvement visualization. Similar to search results but focused on showing rankings going up, with the client's result rising to the top positions.",
+      "durationInFrames": 200,
+      "durationInSeconds": 6.67,
+      "base_text": {
+        "a": "And the results speak for themselves. Watch your rankings climb as your business rises to the top of search results!",
+        "b": "And the results speak for themselves. Watch your rankings climb as your business rises to the top of search results!",
+        "e": "Y los resultados hablan por sí mismos. ¡Mira cómo tus posiciones suben mientras tu negocio asciende a la cima de los resultados de búsqueda!",
+        "f": "Et les résultats parlent d'eux-mêmes. Regardez vos classements grimper pendant que votre entreprise monte au sommet des résultats de recherche !"
+      },
+      "defaultProps": {
+        "keyword": "Best SEO agency near me"
+      }
+    },
+    {
+      "id": "outro",
+      "context": "Brand outro with logo reveal. The scene slides up from the bottom, revealing the company logo with a spin animation, followed by the company name and tagline.",
+      "durationInFrames": 160,
+      "durationInSeconds": 5.33,
+      "base_text": {
+        "a": "{agency_name}. {tagline}.",
+        "b": "{agency_name}. {tagline}.",
+        "e": "{agency_name}. {tagline}.",
+        "f": "{agency_name}. {tagline}."
+      },
+      "defaultProps": {
+        "agency_name": "ChocoMotion",
+        "logo": "https://pub-2932e499ab424f33983dc4145a780d77.r2.dev/public/logo.png",
+        "tagline": "The only marketing agency you'll need"
+      }
+    },
+    {
+      "id": "store-front",
+      "context": "Animated storefront/house with company sign. A simple house illustration with windows and a door, displaying the company name on a sign. Not currently used in main composition.",
+      "durationInFrames": 120,
+      "durationInSeconds": 4.0,
+      "base_text": {
+        "a": "Welcome to {agency_name}. Your digital home on the web.",
+        "b": "Welcome to {agency_name}. Your digital home on the web.",
+        "e": "Bienvenido a {agency_name}. Tu hogar digital en la web.",
+        "f": "Bienvenue chez {agency_name}. Votre maison digitale sur le web."
+      },
+      "defaultProps": {
+        "agency_name": "ChocoMotion"
+      }
+    },
+    {
+      "id": "salesIssue",
+      "context": "Marketing campaign launch with disappointing results. Shows a progress bar filling to 100% with confetti celebration, then transitions to show campaign metrics: Impressions (good), Clicks (okay), Sales (zero). Features a dramatic reveal of wasted budget with a flipping text animation from problem to solution.",
+      "durationInFrames": 480,
+      "durationInSeconds": 16.0,
+      "base_text": {
+        "a": "It's always the same thing: you launched your campaign with high hopes, and a great budget. The impressions came pouring in. Clicks looked promising. But when it came time for sales... nothing. Zero. Lots of money spent with absolutely nothing to show for it. Sound familiar? Let's fix that.",
+        "b": "It's always the same thing: you launched your campaign with high hopes, and a great budget. The impressions came pouring in. Clicks looked promising. But when it came time for sales... nothing. Zero. Lots of money spent with absolutely nothing to show for it. Sound familiar? Let's fix that.",
+        "e": "Siempre es lo mismo: lanzaste tu campaña con grandes esperanzas y un buen presupuesto. Las impresiones llegaron a montones. Los clics parecían prometedores. Pero cuando llegó el momento de las ventas... nada. Cero. Mucho dinero gastado sin absolutamente nada que mostrar. ¿Te suena familiar? Vamos a arreglarlo.",
+        "f": "C'est toujours la même chose : vous avez lancé votre campagne avec de grands espoirs et un bon budget. Les impressions ont afflué. Les clics semblaient prometteurs. Mais quand est venu le moment des ventes... rien. Zéro. Beaucoup d'argent dépensé sans rien à montrer. Ça vous dit quelque chose ? Réglons ça."
+      },
+      "defaultProps": {
+        "campaignName": "Marketing Campaign",
+        "impressionsValue": 150000,
+        "clicksValue": 4500,
+        "salesValue": 0,
+        "amountSpent": "$15,000"
+      }
+    },
+    {
+      "id": "salesGoUp",
+      "context": "Sales success celebration visualization. Shows an intro with 'Sales Skyrocketing' message, a rising exponential graph line, spending/revenue counters climbing, floating dollar signs, confetti celebration, and final revenue achievement text.",
+      "durationInFrames": 220,
+      "durationInSeconds": 7.33,
+      "base_text": {
+        "a": "And here's what happens when you work with us. Your spending turns into real revenue. Money generated and counting!",
+        "b": "And here's what happens when you work with us. Your spending turns into real revenue. Money generated and counting!",
+        "e": "Y esto es lo que pasa cuando trabajas con nosotros. Tu inversión se convierte en ingresos reales. ¡Dinero generado y sumando!",
+        "f": "Et voici ce qui se passe quand vous travaillez avec nous. Vos dépenses se transforment en vrais revenus. De l'argent généré et ça continue !"
+      },
+      "defaultProps": {
+        "spendingValue": 15000,
+        "revenueValue": 45000
+      }
+    }
+  ],
+  "templates":[
+    {
+      "name": "seo-agency",
+      "scenes": ["google-search", "google-result", "3pillars", "circleFeatures", "planning", "delivery", "seogoesup", "outro"]
+    },
+    {
+      "name": "marketing-agency",
+      "scenes": ["salesIssue", "3pillars", "circleFeatures", "planning", "delivery", "salesGoUp", "outro"]
+    }
+  ],
+  "metadata": {
+    "fps": 30
+  }
+}
